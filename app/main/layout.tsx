@@ -7,7 +7,7 @@
 // // import { MenuOutlined } from "@mui/icons-material";
 
 import { AccountCircleOutlined, CloseOutlined, DeleteOutline, FavoriteOutlined, InboxOutlined, LocationOnOutlined, MailOutlineOutlined, RestoreOutlined } from "@mui/icons-material";
-import { BottomNavigation, BottomNavigationAction, Button, Typography } from "@mui/material";
+import { BottomNavigation, BottomNavigationAction, Button, Paper, Typography } from "@mui/material";
 import AppBar from "@mui/material/AppBar/AppBar";
 import Box from "@mui/material/Box/Box";
 import CssBaseline from "@mui/material/CssBaseline/CssBaseline";
@@ -372,20 +372,23 @@ export default function Layout({
 					Photos
 				</Typography> */}
 				<Box component="div" sx={{ flexGrow: 1 }}></Box>
-				<Button  startIcon={<AccountCircleOutlined />} onClick={() => login()}>
-					Login
-				</Button>
-				<Button  startIcon={<CloseOutlined />} onClick={() => logout()}>
-					Logout
-				</Button>
+				{
+					LoginProvider.isLoggedIn() ?
+						<Button  startIcon={<CloseOutlined />} onClick={() => logout()}>
+							Logout
+						</Button> :
+						<Button  startIcon={<AccountCircleOutlined />} onClick={() => router.push('/login')}>
+							Login
+						</Button>
+				}
 			</Box>
-			<Box height={contentHeight} sx={{ overflow: 'scroll', margin: 2, borderRadius: 2, backgroundColor: 'orange' }}>
+			<Paper elevation={isMobile? 0 : 1} sx={{ height: contentHeight + 'px', overflow: 'scroll', margin: 2, borderRadius: 2 }}>
 				<Box>
 					{windowSize.width}px
 					{windowSize.height}px
 					{children}
 				</Box>
-			</Box>
+			</Paper>
 			<Box sx={{ display: { md: 'none', lg: 'none' } }}>
 			         <BottomNavigation
           showLabels
