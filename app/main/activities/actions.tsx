@@ -3,19 +3,22 @@
 import { API_URL } from "@/app/config/constants";
 import { Activity } from "@/app/models/activity";
 
-export async function loadActivities(): Promise<Activity[]> {
+export async function loadActivities(params: Map<string, string | null>): Promise<Activity[]> {
     try {
-        const response = await fetch(`${API_URL}//activities`);
-        // if (response.status !== 200) {
-        //     return [];
-        // }
-        // const activities: Activity[] = await response.json();
+        const url = new URL(`${API_URL}/activities`);
+        params.keys()
+            for (const [key, value] of params) {
+                if (!value || value === 'ALL') continue;
+                url.searchParams.append(key, value);
+            }
+            console.log(url)
+        const response = await fetch(url, { method: 'GET' });
         const data: [] = await response.json();
         const activities: Activity[] = data.map(json => {
             console.log('RawData: ', json)
             const activity: Activity = {
                 id: +json['id'],
-                allowAnonymous: json['allowAnonymous'],
+                allowAnonymous: json['allowAnonymous'] === 'true',
                 companyId: +json['company_id'],
                 companyName: json['company_name'],
                 date: new Date(json['date']),
@@ -57,6 +60,6 @@ export async function reserveActivity(params: ReserveActivityParams) {
         }),
     })
     .then(result => result.json())
-    .catch(err => null);
+    .catch(() => null);
     return reservation;
 }

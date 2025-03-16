@@ -34,6 +34,9 @@ export class LoginProvider {
             return user;
         }
     }
+    public static isLoggedIn(): boolean {
+        return this.getUser().isLoggedIn;
+    }
     public static async login(params: LoginCredentials): Promise<LoggedUser | null> {
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
