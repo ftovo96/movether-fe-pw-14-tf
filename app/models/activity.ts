@@ -1,9 +1,4 @@
-enum SPORT {
-    'RUNNING',
-    'JOGGING',
-    'TENNIS',
-    'BODYBUILDING'
-}
+import { SPORT } from "./sport";
 
 export interface Activity {
     id: number,
