@@ -6,6 +6,7 @@ import { Alert, Button, FormControl, IconButton, InputAdornment, TextField, Tool
 import { AccountCircleOutlined, ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoginCredentials, LoginProvider } from '../providers/userProvider';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
@@ -140,6 +141,8 @@ export default function Home() {
       </FormControl>
       <Box sx={{ padding: 1 }}></Box>
       <Button variant='contained' disabled={formSubmitted && !!(emailError || passwordError)} onClick={handleClickLogin}>Accedi</Button>
+      <Box sx={{ padding: 2 }}></Box>
+      <Typography>Non hai ancora un account? <Link style={{ textDecoration: 'underline' }} href={'/register'}>Registrati</Link>!</Typography>
     </Box>
   );
 }
