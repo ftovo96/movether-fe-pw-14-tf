@@ -2,12 +2,12 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Rating, Select, TextField, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Rating, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
 import { CalendarMonthOutlined, GroupsOutlined, PlaceOutlined, SearchOutlined } from '@mui/icons-material';
 import { deleteReservation, editReservation, EditReservationParams, FeedbackParams, getReservationOptions, loadReservations, sendFeedback } from './actions';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { LoginProvider } from '@/app/providers/userProvider';
+import { UserContext } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
 import { Reservation, ReservationOption } from '@/app/models/reservation';
 
@@ -180,7 +180,7 @@ function EditReservationDialog(props: EditDialogProps) {
 }
 
 interface ReservationCardProps {
-	reservation: Reservation,
+	reservation: Reservation | null,
 	handleClickFeedback: (reservation: Reservation) => void,
 	handleEditReservation: (reservation: Reservation) => void,
 	handleDeleteReservation: (reservation: Reservation) => void,
@@ -192,37 +192,46 @@ function ReservationCard(props: ReservationCardProps) {
 		return (
 			<Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'start', alignItems: 'center', gap: 1, paddingBottom: 1 }}>
 				{icon}
-				{text}
+				{props.reservation ? text : <Skeleton width={'100%'} />}
 			</Typography>
 		);
 	}
 
-	const reservationDate = new Date(`${props.reservation.date.toDateString()} ${props.reservation.time}`);
-	const hasExpired = Date.now() > reservationDate.getTime();
-	const isExpiring = (Date.now() - reservationDate.getTime()) < (24 * 60 * 60 * 1000);
-	const isDisabled = hasExpired && !isExpiring && props.reservation.validated === false;
 	let statusChip: React.ReactElement;
-	if (props.reservation.validated) {
-		statusChip = <Chip label='Validata' color='success' size='small' />;
-	} else if (hasExpired && props.reservation.validated === false) {
-		statusChip = <Chip label='Scaduta' color='error' size='small' />
-	} else if (hasExpired && !props.reservation.validated) {
-		statusChip = <Chip label='In attesa di validazione' color='warning' size='small' />
-	} else if (isExpiring) {
-		statusChip = <Chip label='In scandenza' color='warning' size='small' />
-	} else {
-		statusChip = <Chip label='Disponibile' color='success' size='small' />;
-	}
+	let isDisabled: boolean;
 	let actions: React.ReactElement[] = [];
-	if (props.reservation.validated && !props.reservation.feedbackId) {
-		actions = [
-			<Button key='feedback' variant='outlined' size="small" onClick={() => props.handleClickFeedback(props.reservation)}>Lascia feedback</Button>
-		];
-	} else if (!hasExpired) {
-		actions = [
-			<Button key='edit' variant='outlined' size="small" onClick={() => props.handleEditReservation(props.reservation)}>Modifica</Button>,
-			<Button key='delete' variant='outlined' color='error' size="small" onClick={() => props.handleDeleteReservation(props.reservation)}>Elimina</Button>
-		];
+	let reservationTitle;
+	if (props.reservation !== null) {
+		reservationTitle = <>{props.reservation.sport} - <Link href={`/main/companies/${props.reservation.companyId}`}>{props.reservation.companyName}</Link></>;
+		const reservationDate = new Date(`${props.reservation.date.toDateString()} ${props.reservation.time}`);
+		const hasExpired = Date.now() > reservationDate.getTime();
+		const isExpiring = (Date.now() - reservationDate.getTime()) < (24 * 60 * 60 * 1000);
+		isDisabled = hasExpired && !isExpiring && props.reservation.validated === false;
+		if (props.reservation.validated) {
+			statusChip = <Chip label='Validata' color='success' size='small' />;
+		} else if (hasExpired && props.reservation.validated === false) {
+			statusChip = <Chip label='Scaduta' color='error' size='small' />
+		} else if (hasExpired && !props.reservation.validated) {
+			statusChip = <Chip label='In attesa di validazione' color='warning' size='small' />
+		} else if (isExpiring) {
+			statusChip = <Chip label='In scandenza' color='warning' size='small' />
+		} else {
+			statusChip = <Chip label='Disponibile' color='success' size='small' />;
+		}
+		if (props.reservation.validated && !props.reservation.feedbackId) {
+			actions = [
+				<Button key='feedback' variant='outlined' size="small" onClick={() => props.handleClickFeedback(props.reservation!)}>Lascia feedback</Button>
+			];
+		} else if (!hasExpired) {
+			actions = [
+				<Button key='edit' variant='outlined' size="small" onClick={() => props.handleEditReservation(props.reservation!)}>Modifica</Button>,
+				<Button key='delete' variant='outlined' color='error' size="small" onClick={() => props.handleDeleteReservation(props.reservation!)}>Elimina</Button>
+			];
+		}
+	} else {
+		isDisabled = false;
+		statusChip = <Skeleton width={64} />;
+		actions = [<Skeleton key={0} width={80}></Skeleton>];
 	}
 
 	return (
@@ -239,14 +248,12 @@ function ReservationCard(props: ReservationCardProps) {
 			<CardContent>
 				{statusChip}
 				<Box sx={{ paddingBottom: 1 }} />
-				<Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>
-					{props.reservation.sport} - <Link href={'/'}>{props.reservation.companyName}</Link>
-				</Typography>
+				<Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>{reservationTitle}</Typography>
 				<Box sx={{ paddingBottom: 1 }} />
-				{getRow(`Data: ${props.reservation.date.toLocaleDateString()} alle  ${props.reservation.time}`, <CalendarMonthOutlined />)}
-				{getRow(`Posti disponibili: ${props.reservation.availablePartecipants}`, <GroupsOutlined />)}
-				{getRow(`Posti riservati: ${props.reservation.requestedPartecipants}`, <GroupsOutlined />)}
-				{getRow(`Località: ${props.reservation.location}`, <PlaceOutlined />)}
+				{getRow(`Data: ${props.reservation?.date.toLocaleDateString()} alle  ${props.reservation?.time}`, <CalendarMonthOutlined />)}
+				{getRow(`Posti disponibili: ${props.reservation?.availablePartecipants}`, <GroupsOutlined />)}
+				{getRow(`Posti riservati: ${props.reservation?.requestedPartecipants}`, <GroupsOutlined />)}
+				{getRow(`Località: ${props.reservation?.location}`, <PlaceOutlined />)}
 			</CardContent>
 			<CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end', alignItems: 'center' }}>
 				{actions}
@@ -269,6 +276,8 @@ export default function ReservationsPage() {
 	const [sport, setSport] = React.useState<string>('ALL');
 	const [reservationOptions, setReservationOptions] = React.useState<ReservationOption[]>([]);
 	const selectedReservation = React.useRef<Reservation | null>(null);
+	const [snackbarMessage, setSnackbarMessage] = React.useState<string>('');
+	const user = React.useContext(UserContext);
 
 	useEffect(() => {
 		_loadSports();
@@ -277,12 +286,11 @@ export default function ReservationsPage() {
 
 	useEffect(() => {
 		deboucedLoadReservations();
-	}, [search, sport, location]);
+	}, [search, sport, location, user.isLoggedIn]);
 
 	async function _loadReservations() {
 		setLoading(true);
 		const params: Map<string, string | null> = new Map<string, string | null>();
-		const user = LoginProvider.getUser();
 		if (user.isLoggedIn) {
 			params.set('userId', `${user.id}`);
 		}
@@ -339,7 +347,6 @@ export default function ReservationsPage() {
 	}
 
 	async function handleSendFeedback(score: number, message: string) {
-		const user = LoginProvider.getUser();
 		if (!user.isLoggedIn) {
 			return;
 		}
@@ -353,7 +360,9 @@ export default function ReservationsPage() {
 		const result = await sendFeedback(params);
 		if (!result) {
 			console.error('error!');
+			setSnackbarMessage('Impossibile inviare il feedback');
 		} else {
+			setSnackbarMessage('Feedback inviato');
 			selectedReservation.current = null;
 			setIsFeedbackDialogOpen(false);
 			deboucedLoadReservations();
@@ -363,8 +372,9 @@ export default function ReservationsPage() {
 	async function _deleteReservation(reservation: Reservation) {
 		const result = await deleteReservation(reservation);
 		if (!result) {
-			console.error('error!');
+			setSnackbarMessage('Impossibile eliminare la prenotazione');
 		} else {
+			setSnackbarMessage('Prenotazione eliminata');
 			selectedReservation.current = null;
 			setIsDeleteDialogOpen(false);
 			deboucedLoadReservations();
@@ -372,7 +382,6 @@ export default function ReservationsPage() {
 	}
 
 	async function _editReservation(time: string, partecipants: number, option: ReservationOption, reservation: Reservation) {
-		const user = LoginProvider.getUser();
 		if (!user.isLoggedIn) {
 			return;
 		}
@@ -385,8 +394,9 @@ export default function ReservationsPage() {
 		}
 		const result = await editReservation(params);
 		if (!result) {
-			console.error('error!');
+			setSnackbarMessage('Impossibile modificare la prenotazione');
 		} else {
+			setSnackbarMessage('Prenotazione modificata');
 			selectedReservation.current = null;
 			setIsEditDialogOpen(false);
 			deboucedLoadReservations();
@@ -411,6 +421,7 @@ export default function ReservationsPage() {
 		setSports(_sports);
 	}
 
+	const reservationsToRender = loading ? [null, null, null, null] : reservations;
 	return (
 		<>
 			<Box sx={{ padding: 2, }}>
@@ -475,15 +486,26 @@ export default function ReservationsPage() {
 						</TextField>
 					</Box>
 				</Box>
-				<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
-					{reservations.map(reservation =>
-						<ReservationCard key={reservation.id} reservation={reservation} handleClickFeedback={handleClickFeedback} handleDeleteReservation={handleDeleteReservation} handleEditReservation={handleEditReservation} />
-					)}
-				</Box>
+				{
+					reservationsToRender.length ?
+						<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
+							{reservationsToRender.map((reservation, index) =>
+								<ReservationCard key={reservation?.id || index} reservation={reservation} handleClickFeedback={handleClickFeedback} handleDeleteReservation={handleDeleteReservation} handleEditReservation={handleEditReservation} />
+							)}
+						</Box>
+						:
+						<Typography variant='h6' align='center' marginTop={4} marginBottom={4}>Nessuna prenotazione</Typography>
+				}
 			</Box>
 			{isFeedbackDialogOpen ? <FeedbackDialog isOpen={isFeedbackDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseFeedbackDialog} handleSendFeedback={handleSendFeedback}></FeedbackDialog> : null}
 			{isDeleteDialogOpen ? <DeleteReservationDialog isOpen={isDeleteDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseDeleteDialog} handleDeleteReservation={_deleteReservation}></DeleteReservationDialog> : null}
 			{isEditDialogOpen ? <EditReservationDialog isOpen={isEditDialogOpen} reservation={selectedReservation.current!} reservationOptions={reservationOptions} handleClose={handleCloseEditDialog} handleEditReservation={_editReservation}></EditReservationDialog> : null}
+			<Snackbar
+				open={!!snackbarMessage}
+				autoHideDuration={6000}
+				onClose={() => setSnackbarMessage('')}
+				message={snackbarMessage}
+			/>
 		</>
 	);
 }
