@@ -12,5 +12,6 @@ export interface Activity {
     companyName: string,
     allowAnonymous: boolean,
     reservationId?: number,
+    isBanned: boolean,
 }
 

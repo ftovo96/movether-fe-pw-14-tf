@@ -2,20 +2,20 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Select, TextField, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
 import { AccessTimeOutlined, CalendarMonthOutlined, GroupsOutlined, PlaceOutlined, SearchOutlined } from '@mui/icons-material';
 import { loadActivities, reserveActivity, ReserveActivityParams } from './actions';
 import { useEffect } from 'react';
 import { Activity } from '@/app/models/activity';
 import Link from 'next/link';
-import { LoginProvider } from '@/app/providers/userProvider';
+import { UserContext } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
 
 export interface ActivityDialogProps {
 	activity: Activity,
 	isOpen: boolean,
 	handleClose: () => void,
-	handleReserveActivity: () => void,
+	handleReserveActivity: (partecipants: number, time: string) => void,
 }
 
 export function ActivityDialog(props: ActivityDialogProps) {
@@ -67,7 +67,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={props.handleClose}>Annulla</Button>
-				<Button variant='outlined' onClick={props.handleReserveActivity}>
+				<Button variant='outlined' onClick={() => props.handleReserveActivity(partecipantsValue, timeValue)}>
 					Prenota
 				</Button>
 			</DialogActions>
@@ -76,7 +76,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 }
 
 export interface ActivityCardProps {
-	activity: Activity,
+	activity: Activity | null,
 	isLoggedIn: boolean,
 	showCompanyLink: boolean,
 	handleClickActivity: (activity: Activity) => void,
@@ -87,50 +87,67 @@ export function ActivityCard(props: ActivityCardProps) {
 		return (
 			<Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'start', alignItems: 'center', gap: 1, paddingBottom: 1 }}>
 				{icon}
-				{text}
+				{props.activity ? text : <Skeleton width={'100%'} />}
 			</Typography>
 		);
 	}
 
 	let statusChip: React.ReactElement;
 	let isAvailable;
-	if (props.isLoggedIn) {
-		statusChip = <Chip label='Disponibile' color='success' size='small' />;
-		isAvailable = true;
-	} else if (props.activity.allowAnonymous) {
-		statusChip = <Chip label='Prenotazione anonima' color='primary' size='small' />;
+	let activityTitle;
+	if (!props.activity) {
+		statusChip = <Skeleton width={64} />;
+		activityTitle = <Skeleton />;
 		isAvailable = true;
 	} else {
-		statusChip = <Chip label='Non disponibile' color='error' size='small' />;
-		isAvailable = false;
+		activityTitle = <>
+			{props.activity.sport} {props.showCompanyLink ? <>- <Link href={`/main/companies/${props.activity.companyId}`}>{props.activity.companyName}</Link></> : null}
+		</>
+		if (props.activity.isBanned) {
+			statusChip = <Chip label='Non disponibile' color='error' size='small' />;
+			isAvailable = false;
+		} else if (props.isLoggedIn) {
+			statusChip = <Chip label='Disponibile' color='success' size='small' />;
+			isAvailable = true;
+		} else if (props.activity.allowAnonymous) {
+			statusChip = <Chip label='Prenotazione anonima' color='primary' size='small' />;
+			isAvailable = true;
+		} else {
+			statusChip = <Chip label='Non disponibile' color='error' size='small' />;
+			isAvailable = false;
+		}
 	}
 
 	return (
-		<Card sx={{
-			minWidth: 275, flexGrow: 1,
-			flexShrink: 1,
-			flexBasis: 0,
-			display: 'flex',
-			flexDirection: 'column',
-			justifyContent: 'space-between',
-			opacity: isAvailable ? null : 0.5,
-			backgroundColor: isAvailable ? null : 'lightgray'
-		}}>
+		<Card
+			elevation={isAvailable ? 1 : 0}
+			sx={{
+				minWidth: 275, flexGrow: 1,
+				flexShrink: 1,
+				flexBasis: 0,
+				display: 'flex',
+				flexDirection: 'column',
+				justifyContent: 'space-between',
+				opacity: isAvailable ? null : 0.5,
+				backgroundColor: isAvailable ? null : 'lightgray'
+			}}
+		>
 			<CardContent>
 				{statusChip}
 				<Box sx={{ paddingBottom: 1 }} />
-				<Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>
-					{props.activity.sport} {props.showCompanyLink?  <>- <Link href={`/main/companies/${props.activity.companyId}`}>{props.activity.companyName}</Link></> : null}
-				</Typography>
+				<Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>{activityTitle}</Typography>
 				<Box sx={{ paddingBottom: 1 }} />
-				{getRow(`Data: ${props.activity.date.toLocaleDateString()}`, <CalendarMonthOutlined />)}
-				{getRow(`Orari disponibili: ${props.activity.times.join(' - ')}`, <AccessTimeOutlined />)}
-				{getRow(`Posti disponibili: ${props.activity.maxPartecipants}`, <GroupsOutlined />)}
-				{getRow(`Località: ${props.activity.location}`, <PlaceOutlined />)}
+				{getRow(`Data: ${props.activity?.date.toLocaleDateString()}`, <CalendarMonthOutlined />)}
+				{getRow(`Orari disponibili: ${props.activity?.times.join(' - ')}`, <AccessTimeOutlined />)}
+				{getRow(`Posti disponibili: ${props.activity?.maxPartecipants}`, <GroupsOutlined />)}
+				{getRow(`Località: ${props.activity?.location}`, <PlaceOutlined />)}
 			</CardContent>
 			{isAvailable ?
 				<CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end', alignItems: 'center' }}>
-					<Button variant='outlined' size="small" onClick={() => props.handleClickActivity(props.activity)}>Prenota</Button>
+					{
+						props.activity ?
+							<Button variant='outlined' size="small" onClick={() => props.handleClickActivity(props.activity!)}>Prenota</Button> : <Skeleton width={80}></Skeleton>
+					}
 				</CardActions>
 				: null
 			}
@@ -139,7 +156,7 @@ export function ActivityCard(props: ActivityCardProps) {
 }
 
 export default function ActivitiesPage() {
-	const [loading, setLoading] = React.useState(false);
+	const [loading, setLoading] = React.useState(true);
 	const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 	const [activities, setActivities] = React.useState<Activity[]>([]);
 	const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -149,6 +166,8 @@ export default function ActivitiesPage() {
 	const [search, setSearch] = React.useState<string>('');
 	const [sport, setSport] = React.useState<string>('ALL');
 	const selectedActivity = React.useRef<Activity | null>(null);
+	const [snackbarMessage, setSnackbarMessage] = React.useState<string>('');
+	const user = React.useContext(UserContext);
 
 	useEffect(() => {
 		_loadSports();
@@ -157,12 +176,11 @@ export default function ActivitiesPage() {
 
 	useEffect(() => {
 		deboucedLoadActivities();
-	}, [search, sport, location]);
+	}, [search, sport, location, user.isLoggedIn]);
 
 	async function _loadActivities() {
 		setLoading(true);
 		const params: Map<string, string | null> = new Map<string, string | null>();
-		const user = LoginProvider.getUser();
 		if (user.isLoggedIn) {
 			params.set('userId', `${user.id}`);
 		}
@@ -171,7 +189,6 @@ export default function ActivitiesPage() {
 		params.set('location', location);
 		const _activities = await loadActivities(params);
 		setActivities(_activities);
-		console.log(activities);
 		timeoutRef.current = null;
 		setLoading(false);
 	}
@@ -183,36 +200,34 @@ export default function ActivitiesPage() {
 
 	function handleChangeLocation(location: string) {
 		setLocation(location);
-		deboucedLoadActivities();
 	}
 
 	function handleChangeSearch(value: string) {
 		setSearch(value);
-		// deboucedLoadActivities();
 	}
 
 	function handleChangeSport(sport: string) {
 		setSport(sport);
-		deboucedLoadActivities();
 	}
 
 	function handleCloseDialog() {
 		setIsDialogOpen(false);
 	}
 
-	async function handleReserveActivity() {
+	async function handleReserveActivity(partecipants: number, time: string) {
 		const params: ReserveActivityParams = {
 			activity: selectedActivity.current!,
-			partecipants: 1,
+			partecipants: partecipants,
 			reservationId: selectedActivity.current!.reservationId || null,
-			time: selectedActivity.current!.times[0],
-			userId: null,
+			time: time,
+			userId: user.isLoggedIn ? user.id : null,
 		};
 		console.log(params);
 		const reservation = await reserveActivity(params);
 		if (reservation === null) {
-			console.error('error!');
+			setSnackbarMessage('Impossibile prenotare l\'attività');
 		} else {
+			setSnackbarMessage('Attività prenotata');
 			selectedActivity.current = null;
 			setIsDialogOpen(false);
 			deboucedLoadActivities();
@@ -237,10 +252,11 @@ export default function ActivitiesPage() {
 		setSports(_sports);
 	}
 
+	const activitiesToRender = loading ? [null, null, null, null] : activities;
 	return (
 		<>
 			<Box sx={{ padding: 2, }}>
-				<Typography sx={{ fontSize: 26, fontWeight: 'bold', paddingBottom: 2 }}>Attività: {activities.length}</Typography>
+				<Typography sx={{ fontSize: 26, fontWeight: 'bold', paddingBottom: 2 }}>Attività</Typography>
 				<OutlinedInput fullWidth placeholder='Cerca...' value={search} onChange={(event) => handleChangeSearch(event.target.value)} size='small' endAdornment={
 					<InputAdornment position='end'><SearchOutlined /></InputAdornment>
 				} />
@@ -301,13 +317,24 @@ export default function ActivitiesPage() {
 						</TextField>
 					</Box>
 				</Box>
-				<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
-					{activities.map(activity =>
-						<ActivityCard key={activity.id} activity={activity} handleClickActivity={handleClickActivity} isLoggedIn={LoginProvider.isLoggedIn()} showCompanyLink={true} />
-					)}
-				</Box>
+				{
+					activitiesToRender.length ?
+						<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
+							{activitiesToRender.map((activity, index) =>
+								<ActivityCard key={activity?.id || index} activity={activity} handleClickActivity={handleClickActivity} isLoggedIn={user.isLoggedIn} showCompanyLink={true} />
+							)}
+						</Box>
+						:
+						<Typography variant='h6' align='center' marginTop={4} marginBottom={4}>Nessuna attività disponibile</Typography>
+				}
 			</Box>
-			{isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={() => handleReserveActivity()}></ActivityDialog> : null}
+			{isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={handleReserveActivity}></ActivityDialog> : null}
+			<Snackbar
+				open={!!snackbarMessage}
+				autoHideDuration={6000}
+				onClose={() => setSnackbarMessage('')}
+				message={snackbarMessage}
+			/>
 		</>
 	);
 }

@@ -28,6 +28,7 @@ export async function loadActivities(params: Map<string, string | null>): Promis
                 sport: json['sport'],
                 times: (json['times'] as string).split('; '),
                 reservationId: json['reservationId'],
+                isBanned: json['isBanned'] === 'true',
             };
             return activity;
         });
