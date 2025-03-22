@@ -2,14 +2,14 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Alert, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { Alert, Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Skeleton, Typography } from '@mui/material';
 import { loadRedeemedRewards, loadRewards, loadUserPoints, redeemReward } from './actions';
-import { LoginProvider } from '@/app/providers/userProvider';
+import { UserContext } from '@/app/providers/userProvider';
 import { RedeemedReward, Reward } from '@/app/models/reward';
 import Link from 'next/link';
 
 interface RewardCardProps {
-  reward: Reward,
+  reward: Reward | null,
   points: number,
   isLoggedIn: boolean,
   onClickRedeemReward: (reward: Reward) => void
@@ -30,9 +30,9 @@ function RewardCard(props: RewardCardProps) {
       <CardContent>
         <Box sx={{ paddingBottom: 1 }} />
         <Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>
-          {props.reward.description}
+          {props.reward?.description || <Skeleton />}
         </Typography>
-        {props.points === 0 && props.isLoggedIn ?
+        {props.points === 0 && props.isLoggedIn && props.reward ?
           <>
             <Box sx={{ paddingBottom: 1 }} />
             <Typography>Non hai abbastanza punti</Typography>
@@ -42,7 +42,11 @@ function RewardCard(props: RewardCardProps) {
       {
         props.isLoggedIn ?
           <CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end', alignItems: 'center' }}>
-            <Button variant='outlined' onClick={() => props.onClickRedeemReward(props.reward)}>Riscatta</Button>
+            {props.reward ?
+              <Button variant='outlined' onClick={() => props.onClickRedeemReward(props.reward!)}>Riscatta</Button>
+              :
+              <Skeleton key={0} width={80} />
+            }
           </CardActions> : null
       }
     </Card>
@@ -50,7 +54,7 @@ function RewardCard(props: RewardCardProps) {
 }
 
 interface RedeemedRewardCardProps {
-  redeemedReward: RedeemedReward,
+  redeemedReward: RedeemedReward | null,
 }
 
 function RedeemedRewardCard(props: RedeemedRewardCardProps) {
@@ -66,10 +70,10 @@ function RedeemedRewardCard(props: RedeemedRewardCardProps) {
       <CardContent>
         <Box sx={{ paddingBottom: 1 }} />
         <Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>
-          {props.redeemedReward.description}
+          {props.redeemedReward?.description || <Skeleton />}
         </Typography>
         <Box sx={{ paddingBottom: 1 }} />
-        <Typography>{props.redeemedReward.code}</Typography>
+        <Typography>{props.redeemedReward?.code || <Skeleton />}</Typography>
       </CardContent>
     </Card>
   );
@@ -111,23 +115,29 @@ export default function Rewards() {
   const [rewards, setRewards] = React.useState<Reward[]>([]);
   const [redeemedRewards, setRedeemedRewards] = React.useState<RedeemedReward[]>([]);
   const [points, setPoints] = React.useState<number>(0);
+  const [isLoadingRewards, setIsLoadingRewards] = React.useState<boolean>(true);
+  const [isLoadingRedeemedRewards, setIsLoadingRedeemedRewards] = React.useState<boolean>(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState<boolean>(false);
   const selectedReward = React.useRef<Reward | null>(null);
-  const isLoggedIn = LoginProvider.isLoggedIn();
+  const user = React.useContext(UserContext);
 
-  React.useEffect(() => { loadData() }, [isLoggedIn]);
+  React.useEffect(() => { loadData() }, [user.isLoggedIn]);
 
   async function loadData() {
-    const user = LoginProvider.getUser();
+    setIsLoadingRewards(true);
     if (user.isLoggedIn) {
+      setIsLoadingRedeemedRewards(true);
       const _rewards = await loadRewards(user.id);
       const _redeemedRewards = await loadRedeemedRewards(user.id);
       const _points = await loadUserPoints(user.id);
+      setIsLoadingRewards(false);
+      setIsLoadingRedeemedRewards(false);
       setRewards(_rewards);
       setRedeemedRewards(_redeemedRewards);
       setPoints(_points);
     } else {
       const _rewards = await loadRewards(0);
+      setIsLoadingRewards(false);
       setRewards(_rewards);
     }
   }
@@ -142,7 +152,6 @@ export default function Rewards() {
   }
 
   async function handleRedeemReward() {
-    const user = LoginProvider.getUser();
     if (user.isLoggedIn) {
       await redeemReward(selectedReward.current!.id, user.id);
       setIsDialogOpen(false);
@@ -152,12 +161,14 @@ export default function Rewards() {
   }
 
   let alertMessage;
-  if (isLoggedIn) {
+  if (user.isLoggedIn) {
     alertMessage = `Riscatta i premi che vuoi. Ogni premio costa 1 punto (hai ${points} punti).`;
   } else {
     alertMessage = <Typography>Per riscattare i premi devi <Link style={{ textDecoration: 'underline' }} href={'/login'}>effettuare il login</Link>!</Typography>
   }
 
+  const rewardsToRender = isLoadingRewards ? [null, null, null] : rewards;
+  const redeemedRewardsToRender = isLoadingRedeemedRewards ? [null, null, null] : redeemedRewards;
   return (
     <>
       <Box sx={{ padding: 2, }}>
@@ -165,18 +176,18 @@ export default function Rewards() {
         <Alert severity="info">{alertMessage}</Alert>
         <Box sx={{ padding: 1 }} />
         <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
-          {rewards.map(reward =>
-            <RewardCard key={reward.id} reward={reward} points={points} isLoggedIn={isLoggedIn} onClickRedeemReward={handleOpenRedeemRewardDialog} />
+          {rewardsToRender.map((reward, index) =>
+            <RewardCard key={reward?.id || index} reward={reward} points={points} isLoggedIn={user.isLoggedIn} onClickRedeemReward={handleOpenRedeemRewardDialog} />
           )}
         </Box>
         <Box sx={{ padding: 2 }} />
-        {isLoggedIn ?
+        {user.isLoggedIn ?
           <>
             <Typography sx={{ fontSize: 20, fontWeight: 'bold', paddingBottom: 2 }}>Premi riscattati</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
               {
-                redeemedRewards.length ? redeemedRewards.map(redeemReward =>
-                  <RedeemedRewardCard key={redeemReward.code} redeemedReward={redeemReward} />
+                redeemedRewardsToRender.length ? redeemedRewardsToRender.map((redeemReward, index) =>
+                  <RedeemedRewardCard key={redeemReward?.code || index} redeemedReward={redeemReward} />
                 ) : <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Typography sx={{ fontSize: 20 }} align='center'>Nessun premio riscattato</Typography></Box>
               }
             </Box>
