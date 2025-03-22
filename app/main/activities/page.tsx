@@ -8,17 +8,17 @@ import { loadActivities, reserveActivity, ReserveActivityParams } from './action
 import { useEffect } from 'react';
 import { Activity } from '@/app/models/activity';
 import Link from 'next/link';
-import { LoginProvider, UserContext } from '@/app/providers/userProvider';
+import { LoginProvider } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
 
-interface ActivityDialogProps {
+export interface ActivityDialogProps {
 	activity: Activity,
 	isOpen: boolean,
 	handleClose: () => void,
 	handleReserveActivity: () => void,
 }
 
-function ActivityDialog(props: ActivityDialogProps) {
+export function ActivityDialog(props: ActivityDialogProps) {
 	const [timeValue, setTimeValue] = React.useState<string>(props.activity.times.length === 1 ? props.activity.times[0] : '');
 	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(1);
 	const partecipantsValues: number[] = Array.from({ length: props.activity.maxPartecipants }).map((x, index) => index + 1);
@@ -75,13 +75,14 @@ function ActivityDialog(props: ActivityDialogProps) {
 	);
 }
 
-interface ActivityCardProps {
+export interface ActivityCardProps {
 	activity: Activity,
 	isLoggedIn: boolean,
+	showCompanyLink: boolean,
 	handleClickActivity: (activity: Activity) => void,
 }
 
-function ActivityCard(props: ActivityCardProps) {
+export function ActivityCard(props: ActivityCardProps) {
 	function getRow(text: string, icon: React.ReactElement) {
 		return (
 			<Typography sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'start', alignItems: 'center', gap: 1, paddingBottom: 1 }}>
@@ -119,7 +120,7 @@ function ActivityCard(props: ActivityCardProps) {
 				{statusChip}
 				<Box sx={{ paddingBottom: 1 }} />
 				<Typography gutterBottom sx={{ fontSize: 20, fontWeight: 'bold' }}>
-					{props.activity.sport} - <Link href={'/'}>{props.activity.companyName}</Link>
+					{props.activity.sport} {props.showCompanyLink?  <>- <Link href={`/main/companies/${props.activity.companyId}`}>{props.activity.companyName}</Link></> : null}
 				</Typography>
 				<Box sx={{ paddingBottom: 1 }} />
 				{getRow(`Data: ${props.activity.date.toLocaleDateString()}`, <CalendarMonthOutlined />)}
@@ -302,7 +303,7 @@ export default function ActivitiesPage() {
 				</Box>
 				<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
 					{activities.map(activity =>
-						<ActivityCard key={activity.id} activity={activity} handleClickActivity={handleClickActivity} isLoggedIn={LoginProvider.isLoggedIn()} />
+						<ActivityCard key={activity.id} activity={activity} handleClickActivity={handleClickActivity} isLoggedIn={LoginProvider.isLoggedIn()} showCompanyLink={true} />
 					)}
 				</Box>
 			</Box>
