@@ -2,8 +2,8 @@
 
 // import type { Metadata } from "next";
 // // import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { AccountCircleOutlined, CloseOutlined, DirectionsRun, DirectionsRunOutlined, EmojiEvents, EmojiEventsOutlined, Event, EventOutlined } from "@mui/icons-material";
-import { BottomNavigation, BottomNavigationAction, Button, Paper, Typography } from "@mui/material";
+import { AccountCircleOutlined, DirectionsRun, DirectionsRunOutlined, EmojiEvents, EmojiEventsOutlined, Event, EventOutlined, VisibilityOffOutlined } from "@mui/icons-material";
+import { BottomNavigation, BottomNavigationAction, Button, Menu, MenuItem, Paper, Typography } from "@mui/material";
 import Box from "@mui/material/Box/Box";
 import CssBaseline from "@mui/material/CssBaseline/CssBaseline";
 import Drawer from "@mui/material/Drawer/Drawer";
@@ -31,6 +31,7 @@ export default function Layout({
 	children: React.ReactNode;
 }>) {
 	const [user, setUser] = useState(LoginProvider.getUser());
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [viewIndex, setViewIndex] = useState<number>(0);
 	const windowSize = useWindowSize();
 	const router = useRouter();
@@ -43,13 +44,6 @@ export default function Layout({
 		contentHeight -= bottomNavigationHeight;
 	} else {
 		contentWidth -= drawerWidth;
-	}
-
-	console.log('User', LoginProvider.getUser())
-
-	function logout() {
-		LoginProvider.logout();
-		setUser(LoginProvider.getUser());
 	}
 
 	const drawer = (
@@ -115,6 +109,19 @@ export default function Layout({
 		</div>
 	);
 
+	function handleClickUserMenu(event: React.MouseEvent<HTMLButtonElement>) {
+		setAnchorEl(event.currentTarget);
+	};
+
+	function handleCloseUserMenu() {
+		setAnchorEl(null);
+	};
+
+	function logout() {
+		LoginProvider.logout();
+		setUser(LoginProvider.getUser());
+		setAnchorEl(null);
+	}
 
 	return <UserContext.Provider value={user}>
 		<Box sx={{ display: 'flex', backgroundColor: '#6fbcff29' }}>
@@ -143,15 +150,23 @@ export default function Layout({
 					Photos
 				</Typography> */}
 					<Box component="div" sx={{ flexGrow: 1 }}></Box>
-					{
-						LoginProvider.isLoggedIn() ?
-							<Button startIcon={<CloseOutlined />} onClick={() => logout()}>
-								Logout
-							</Button> :
-							<Button startIcon={<AccountCircleOutlined />} onClick={() => router.push('/login')}>
-								Login
-							</Button>
-					}
+						<Button startIcon={user.isLoggedIn? <AccountCircleOutlined /> : <VisibilityOffOutlined />} onClick={handleClickUserMenu}>
+							{user.isLoggedIn? `${user.name} ${user.surname}` : 'Modalità anonima'}
+						</Button>
+						<Menu
+							id="user-menu"
+							anchorEl={anchorEl}
+							open={!!anchorEl}
+							onClose={handleCloseUserMenu}
+						>
+							{
+								user.isLoggedIn?
+								<MenuItem onClick={() => logout()}>Logout</MenuItem>
+								:
+								<MenuItem onClick={() => router.push('/login')}>Accedi</MenuItem>
+
+							}
+						</Menu>
 				</Box>
 				<Paper elevation={isMobile ? 0 : 1} sx={{ height: contentHeight + 'px', overflow: 'scroll', margin: 2, borderRadius: 2 }}>
 					<Box>
