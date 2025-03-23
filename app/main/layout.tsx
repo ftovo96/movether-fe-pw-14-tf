@@ -16,7 +16,7 @@ import Toolbar from "@mui/material/Toolbar/Toolbar";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { usePathname, useRouter } from "next/navigation";
 import { LoginProvider, UserContext } from "../providers/userProvider";
-import { useState, useRef } from "react";
+import { useState } from "react";
 // export const metadata: Metadata = {
 //   title: "BudGym",
 //   description: "Trova il tuo prossimo sport!",
@@ -31,10 +31,6 @@ export default function Layout({
 	children: React.ReactNode;
 }>) {
 	const urlPath: string = usePathname();
-	// Memorizzo path precedente così che quando mi trovo nei
-	// dettagli della palestra posso visualizzare come attiva
-	// la voce di menù da cui provengo.
-	const previousUrlPath = useRef<string>(urlPath);
 	const [user, setUser] = useState(LoginProvider.getUser());
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const windowSize = useWindowSize();
@@ -48,9 +44,6 @@ export default function Layout({
 		contentHeight -= bottomNavigationHeight;
 	} else {
 		contentWidth -= drawerWidth;
-	}
-	if (!urlPath.includes('companies')) {
-		previousUrlPath.current = urlPath;
 	}
 
 	const drawer = (
@@ -66,7 +59,7 @@ export default function Layout({
 						sx={{ borderRadius: 6 }}
 						selected={isActiveView(0)}
 						onClick={() => {
-							router.push('/main/activities')
+							goToRoute('activities', 0)
 						}}>
 						<ListItemIcon>
 							{isActiveView(0) ?
@@ -82,7 +75,7 @@ export default function Layout({
 						sx={{ borderRadius: 6 }}
 						selected={isActiveView(1)}
 						onClick={() => {
-							router.push('/main/reservations')
+							goToRoute('reservations', 1)
 						}}>
 						<ListItemIcon>
 							{isActiveView(1) ?
@@ -98,7 +91,7 @@ export default function Layout({
 						sx={{ borderRadius: 6 }}
 						selected={isActiveView(2)}
 						onClick={() => {
-							router.push('/main/rewards')
+							goToRoute('rewards', 2)
 						}}>
 						<ListItemIcon>
 							{isActiveView(2) ?
@@ -113,14 +106,25 @@ export default function Layout({
 		</div>
 	);
 
+	function goToRoute(route: string, index: number) {
+		localStorage.setItem('mainViewIndex', `${index}`);
+		router.push(`/main/${route}`);
+	}
+
 	function getViewIndex(): number {
-		const path = previousUrlPath.current;
-		if (path.includes('reservations')) {
+		if (urlPath.includes('reservations')) {
 			return 1;
-		} else if (path.includes('rewards')) {
+		} else if (urlPath.includes('rewards')) {
 			return 2;
-		} else {
+		} else if (urlPath.includes('activities')){
 			return 0;
+		} else {
+			const savedViewIndex = localStorage.getItem('mainViewIndex');
+			if (savedViewIndex !== null) {
+				return +savedViewIndex;
+			} else {
+				return 0;
+			}
 		}
 	}
 
@@ -133,17 +137,7 @@ export default function Layout({
 	};
 
 	function isActiveView(pathIndex: number): boolean {
-		const path = previousUrlPath.current;
-		switch (pathIndex) {
-			case 0:
-				return path.includes('activities');
-			case 1:
-				return path.includes('reservations');
-			case 2:
-				return path.includes('rewards');
-			default:
-				return false;
-		}
+		return getViewIndex() === pathIndex;
 	}
 
 	function logout() {
@@ -209,9 +203,9 @@ export default function Layout({
 								showLabels
 								value={getViewIndex()}
 							>
-								<BottomNavigationAction label="Attività" icon={isActiveView(0) ? <DirectionsRun /> : <DirectionsRunOutlined />} onClick={() => router.push('/main/activities')} />
-								<BottomNavigationAction label="Prenotazioni" icon={isActiveView(1) ? <Event /> : <EventOutlined />} onClick={() => router.push('/main/reservations')} />
-								<BottomNavigationAction label="Premi" icon={isActiveView(2) ? <EmojiEvents /> : <EmojiEventsOutlined />} onClick={() => router.push('/main/rewards')} />
+								<BottomNavigationAction label="Attività" icon={isActiveView(0) ? <DirectionsRun /> : <DirectionsRunOutlined />} onClick={() => goToRoute('activities', 0)} />
+								<BottomNavigationAction label="Prenotazioni" icon={isActiveView(1) ? <Event /> : <EventOutlined />} onClick={() => goToRoute('reservations', 1)} />
+								<BottomNavigationAction label="Premi" icon={isActiveView(2) ? <EmojiEvents /> : <EmojiEventsOutlined />} onClick={() => goToRoute('rewards', 2)} />
 							</BottomNavigation>
 						</Box>
 						: null
