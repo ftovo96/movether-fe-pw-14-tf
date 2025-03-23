@@ -71,19 +71,19 @@ export async function getReservationOptions(reservationId: number) {
     }
 }
 
+interface ActivityForReservation {
+    availablePartecipants: number,
+    id: number, // Activity.id
+    reservationId: number | null,
+    time: string,
+}
+
 export interface EditReservationParams {
     reservationId: number,
     time: string,
     partecipants: number,
     activityId: number | null,
     userId: number,
-}
-
-interface ActivityForReservation {
-    availablePartecipants: number,
-    id: number, // Activity.id
-    reservationId: number | null,
-    time: string,
 }
 
 export async function editReservation(params: EditReservationParams) {
@@ -102,16 +102,15 @@ export async function editReservation(params: EditReservationParams) {
             }
             return activity;
         }));
-    console.log(activitiesForReservation);
     const activity = activitiesForReservation.find(activity => activity.time === params.time)!;
-    // console.log(`Reserve activity ${activity.id} at time ${time} for ${partecipants} people`);
-    return fetch(`${API_URL}/updateReservation/${params.reservationId}`, {
+    return fetch(`${API_URL}/reservations/${params.reservationId}`, {
         method: 'PUT',
         body: JSON.stringify({
             "activityId": activity.id,
             "time": params.time,
             "partecipants": params.partecipants,
             "userId": params.userId,
+            "reservationId": params.reservationId,
         }),
     })
     .then(result => result.status === 200)
@@ -141,7 +140,7 @@ export async function sendFeedback(params: FeedbackParams) {
 }
 
 export async function deleteReservation(reservation: Reservation) {
-    return fetch(`${API_URL}/deleteReservation/${reservation.id}`, {
+    return fetch(`${API_URL}/reservations/${reservation.id}`, {
         method: 'DELETE',
     })
     .then(result => result.status === 200)

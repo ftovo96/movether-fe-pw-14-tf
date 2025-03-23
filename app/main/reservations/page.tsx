@@ -111,7 +111,7 @@ interface EditDialogProps {
 function EditReservationDialog(props: EditDialogProps) {
 	const [reservationOption, setReservationOption] = React.useState<ReservationOption>(props.reservationOptions[0]);
 	const [timeValue, setTimeValue] = React.useState<string>(props.reservation.time);
-	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(props.reservation.requestedPartecipants);
+	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(props.reservation.partecipants);
 	const [partecipantsValues, setPartecipantsValues] = React.useState<number[]>([]);
 
 	useEffect(() => handleChangeTime(props.reservation.time), []);
@@ -233,7 +233,6 @@ function ReservationCard(props: ReservationCardProps) {
 		statusChip = <Skeleton width={64} />;
 		actions = [<Skeleton key={0} width={80}></Skeleton>];
 	}
-
 	return (
 		<Card sx={{
 			minWidth: 275, flexGrow: 1,
@@ -252,7 +251,7 @@ function ReservationCard(props: ReservationCardProps) {
 				<Box sx={{ paddingBottom: 1 }} />
 				{getRow(`Data: ${props.reservation?.date.toLocaleDateString()} alle  ${props.reservation?.time}`, <CalendarMonthOutlined />)}
 				{getRow(`Posti disponibili: ${props.reservation?.availablePartecipants}`, <GroupsOutlined />)}
-				{getRow(`Posti riservati: ${props.reservation?.requestedPartecipants}`, <GroupsOutlined />)}
+				{getRow(`Posti riservati: ${props.reservation?.partecipants}`, <GroupsOutlined />)}
 				{getRow(`Località: ${props.reservation?.location}`, <PlaceOutlined />)}
 			</CardContent>
 			<CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end', alignItems: 'center' }}>
@@ -391,7 +390,7 @@ export default function ReservationsPage() {
 			reservationId: reservation.id,
 			time: time,
 			userId: user.id,
-		}
+		};
 		const result = await editReservation(params);
 		if (!result) {
 			setSnackbarMessage('Impossibile modificare la prenotazione');
