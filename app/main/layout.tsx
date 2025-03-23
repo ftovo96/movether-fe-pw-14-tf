@@ -14,9 +14,9 @@ import ListItemIcon from "@mui/material/ListItemIcon/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText/ListItemText";
 import Toolbar from "@mui/material/Toolbar/Toolbar";
 import { useWindowSize } from "../hooks/useWindowSize";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LoginProvider, UserContext } from "../providers/userProvider";
-import { useState } from "react";
+import { useState, useRef } from "react";
 // export const metadata: Metadata = {
 //   title: "BudGym",
 //   description: "Trova il tuo prossimo sport!",
@@ -30,9 +30,13 @@ export default function Layout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const urlPath: string = usePathname();
+	// Memorizzo path precedente così che quando mi trovo nei
+	// dettagli della palestra posso visualizzare come attiva
+	// la voce di menù da cui provengo.
+	const previousUrlPath = useRef<string>(urlPath);
 	const [user, setUser] = useState(LoginProvider.getUser());
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-	const [viewIndex, setViewIndex] = useState<number>(0);
 	const windowSize = useWindowSize();
 	const router = useRouter();
 	const drawerWidth = 240;
@@ -44,6 +48,9 @@ export default function Layout({
 		contentHeight -= bottomNavigationHeight;
 	} else {
 		contentWidth -= drawerWidth;
+	}
+	if (!urlPath.includes('companies')) {
+		previousUrlPath.current = urlPath;
 	}
 
 	const drawer = (
@@ -57,13 +64,12 @@ export default function Layout({
 				<ListItem>
 					<ListItemButton
 						sx={{ borderRadius: 6 }}
-						selected={viewIndex === 0}
+						selected={isActiveView(0)}
 						onClick={() => {
-							setViewIndex(0);
 							router.push('/main/activities')
 						}}>
 						<ListItemIcon>
-							{viewIndex === 0 ?
+							{isActiveView(0) ?
 								<DirectionsRun /> :
 								<DirectionsRunOutlined />
 							}
@@ -74,13 +80,12 @@ export default function Layout({
 				<ListItem>
 					<ListItemButton
 						sx={{ borderRadius: 6 }}
-						selected={viewIndex === 1}
+						selected={isActiveView(1)}
 						onClick={() => {
-							setViewIndex(1);
 							router.push('/main/reservations')
 						}}>
 						<ListItemIcon>
-							{viewIndex === 1 ?
+							{isActiveView(1) ?
 								<Event /> :
 								<EventOutlined />
 							}
@@ -91,13 +96,12 @@ export default function Layout({
 				<ListItem >
 					<ListItemButton
 						sx={{ borderRadius: 6 }}
-						selected={viewIndex === 2}
+						selected={isActiveView(2)}
 						onClick={() => {
-							setViewIndex(2);
 							router.push('/main/rewards')
 						}}>
 						<ListItemIcon>
-							{viewIndex === 2 ?
+							{isActiveView(2) ?
 								<EmojiEvents /> :
 								<EmojiEventsOutlined />
 							}
@@ -109,6 +113,17 @@ export default function Layout({
 		</div>
 	);
 
+	function getViewIndex(): number {
+		const path = previousUrlPath.current;
+		if (path.includes('reservations')) {
+			return 1;
+		} else if (path.includes('rewards')) {
+			return 2;
+		} else {
+			return 0;
+		}
+	}
+
 	function handleClickUserMenu(event: React.MouseEvent<HTMLButtonElement>) {
 		setAnchorEl(event.currentTarget);
 	};
@@ -116,6 +131,20 @@ export default function Layout({
 	function handleCloseUserMenu() {
 		setAnchorEl(null);
 	};
+
+	function isActiveView(pathIndex: number): boolean {
+		const path = previousUrlPath.current;
+		switch (pathIndex) {
+			case 0:
+				return path.includes('activities');
+			case 1:
+				return path.includes('reservations');
+			case 2:
+				return path.includes('rewards');
+			default:
+				return false;
+		}
+	}
 
 	function logout() {
 		LoginProvider.logout();
@@ -178,14 +207,11 @@ export default function Layout({
 						<Box>
 							<BottomNavigation
 								showLabels
-								value={viewIndex}
-								onChange={(event, newValue) => {
-									setViewIndex(newValue);
-								}}
+								value={getViewIndex()}
 							>
-								<BottomNavigationAction label="Attività" icon={viewIndex === 0 ? <DirectionsRun /> : <DirectionsRunOutlined />} onClick={() => router.push('activities')} />
-								<BottomNavigationAction label="Prenotazioni" icon={viewIndex === 1 ? <Event /> : <EventOutlined />} onClick={() => router.push('reservations')} />
-								<BottomNavigationAction label="Premi" icon={viewIndex === 2 ? <EmojiEvents /> : <EmojiEventsOutlined />} onClick={() => router.push('rewards')} />
+								<BottomNavigationAction label="Attività" icon={isActiveView(0) ? <DirectionsRun /> : <DirectionsRunOutlined />} onClick={() => router.push('/main/activities')} />
+								<BottomNavigationAction label="Prenotazioni" icon={isActiveView(1) ? <Event /> : <EventOutlined />} onClick={() => router.push('/main/reservations')} />
+								<BottomNavigationAction label="Premi" icon={isActiveView(2) ? <EmojiEvents /> : <EmojiEventsOutlined />} onClick={() => router.push('/main/rewards')} />
 							</BottomNavigation>
 						</Box>
 						: null
