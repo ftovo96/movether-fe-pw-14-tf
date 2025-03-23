@@ -11,9 +11,11 @@ import { AccountCircleOutlined, ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { loadActivities, reserveActivity, ReserveActivityParams } from '../../activities/actions';
 import { getCompany, loadFeedbacks } from './actions';
-import { ActivityCard, ActivityDialog } from '../../activities/page';
+import { ActivityCard, ActivityDialog, ReservationCodesDialog } from '../../activities/page';
 import { useParams } from 'next/navigation'
 import { Company } from '@/app/models/company';
+import { Reservation } from '@/app/models/reservation';
+import { ReservationsProvider } from '@/app/providers/reservationsProvider';
 
 interface FeedbackCardProps {
   feedback: Feedback | null,
@@ -65,10 +67,12 @@ export default function ActivitiesPage() {
   const [isLoadingFeedbacks, setIsLoadingFeedbacks] = React.useState(false);
   const [isLoadingActivities, setIsLoadingActivities] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isReservationDialogOpen, setIsReservationDialogOpen] = React.useState(false);
   const [activities, setActivities] = React.useState<Activity[]>([]);
   const [feedbacks, setFeedbacks] = React.useState<Feedback[]>([]);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const selectedActivity = React.useRef<Activity | null>(null);
+  const createdReservation = React.useRef<Reservation | null>(null);
   const router = useRouter();
   const params = useParams<{ slug: string; }>();
   const [company, setCompany] = React.useState<Company | null>(null);
@@ -116,6 +120,11 @@ export default function ActivitiesPage() {
     setIsDialogOpen(false);
   }
 
+  function handleCloseReservationCodesDialog() {
+		setIsReservationDialogOpen(false);
+		_loadActivities();
+	}
+
   async function handleReserveActivity() {
     const params: ReserveActivityParams = {
       activity: selectedActivity.current!,
@@ -129,10 +138,15 @@ export default function ActivitiesPage() {
     if (reservation === null) {
       setSnackbarMessage('Impossibile prenotare l\'attività');
     } else {
-      setSnackbarMessage('Attività prenotata');
-      selectedActivity.current = null;
       setIsDialogOpen(false);
-      _loadActivities();
+      if (user.isLoggedIn) {
+        setSnackbarMessage('Attività prenotata');
+        _loadActivities();
+      } else {
+        createdReservation.current = reservation;
+        ReservationsProvider.saveReservation(reservation);
+        setIsReservationDialogOpen(true);
+      }
     }
   }
 
@@ -165,6 +179,7 @@ export default function ActivitiesPage() {
         </Box>
       </Box>
       {isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={() => handleReserveActivity()}></ActivityDialog> : null}
+      {isReservationDialogOpen ? <ReservationCodesDialog isOpen={true} reservation={createdReservation.current!} handleClose={handleCloseReservationCodesDialog} /> : null}
       <Snackbar
         open={!!snackbarMessage}
         autoHideDuration={6000}
