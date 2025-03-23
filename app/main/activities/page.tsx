@@ -10,6 +10,8 @@ import { Activity } from '@/app/models/activity';
 import Link from 'next/link';
 import { UserContext } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
+import { Reservation } from '@/app/models/reservation';
+import { ReservationsProvider } from '@/app/providers/reservationsProvider';
 
 export interface ActivityDialogProps {
 	activity: Activity,
@@ -69,6 +71,46 @@ export function ActivityDialog(props: ActivityDialogProps) {
 				<Button onClick={props.handleClose}>Annulla</Button>
 				<Button variant='outlined' onClick={() => props.handleReserveActivity(partecipantsValue, timeValue)}>
 					Prenota
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+}
+
+export interface ReservationCodesDialogProps {
+	reservation: Reservation,
+	isOpen: boolean,
+	handleClose: () => void,
+}
+
+export function ReservationCodesDialog(props: ReservationCodesDialogProps) {
+	return (
+		<Dialog
+			open={props.isOpen}
+			onClose={props.handleClose}
+			aria-labelledby="alert-dialog-title"
+			aria-describedby="alert-dialog-description"
+		>
+			<DialogTitle id="alert-dialog-title">
+				{"Prenotazione effettuata!"}
+			</DialogTitle>
+			<DialogContent
+				sx={{ minWidth: 320 }}>
+				<Typography>Hai effettuato con successo la prenotazione!</Typography>
+				<Typography>Per gestirla avrai bisogno dei seguenti codici; non li dimenticare!</Typography>
+				<Box sx={{ padding: 1 }} />
+				<Box sx={{ display: 'flex', flexDirection: 'row' }}>
+					<Typography fontWeight={'bold'}>Numero prenotazione:&nbsp;</Typography>
+					<Typography>{props.reservation.id}</Typography>
+				</Box>
+				<Box sx={{ display: 'flex', flexDirection: 'row' }}>
+					<Typography fontWeight={'bold'}>Codice di sicurezza:&nbsp;</Typography>
+					<Typography>{props.reservation.securityCode}</Typography>
+				</Box>
+			</DialogContent>
+			<DialogActions>
+				<Button variant='outlined' onClick={() => props.handleClose()}>
+					Ok, capito!
 				</Button>
 			</DialogActions>
 		</Dialog>
@@ -158,6 +200,7 @@ export function ActivityCard(props: ActivityCardProps) {
 export default function ActivitiesPage() {
 	const [loading, setLoading] = React.useState(true);
 	const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+	const [isReservationDialogOpen, setIsReservationDialogOpen] = React.useState(false);
 	const [activities, setActivities] = React.useState<Activity[]>([]);
 	const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 	const [sports, setSports] = React.useState<string[]>([]);
@@ -166,6 +209,7 @@ export default function ActivitiesPage() {
 	const [search, setSearch] = React.useState<string>('');
 	const [sport, setSport] = React.useState<string>('ALL');
 	const selectedActivity = React.useRef<Activity | null>(null);
+	const createdReservation = React.useRef<Reservation | null>(null);
 	const [snackbarMessage, setSnackbarMessage] = React.useState<string>('');
 	const user = React.useContext(UserContext);
 
@@ -227,11 +271,21 @@ export default function ActivitiesPage() {
 		if (reservation === null) {
 			setSnackbarMessage('Impossibile prenotare l\'attività');
 		} else {
-			setSnackbarMessage('Attività prenotata');
-			selectedActivity.current = null;
 			setIsDialogOpen(false);
-			deboucedLoadActivities();
+			if (user.isLoggedIn) {
+				setSnackbarMessage('Attività prenotata');
+				deboucedLoadActivities();
+			} else {
+				createdReservation.current = reservation;
+				ReservationsProvider.saveReservation(reservation);
+				setIsReservationDialogOpen(true);
+			}
 		}
+	}
+
+	function handleCloseReservationCodesDialog() {
+		setIsReservationDialogOpen(false);
+		deboucedLoadActivities();
 	}
 
 	async function deboucedLoadActivities() {
@@ -328,7 +382,8 @@ export default function ActivitiesPage() {
 						<Typography variant='h6' align='center' marginTop={4} marginBottom={4}>Nessuna attività disponibile</Typography>
 				}
 			</Box>
-			{isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={handleReserveActivity}></ActivityDialog> : null}
+			{isDialogOpen ? <ActivityDialog isOpen={true} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={handleReserveActivity} /> : null}
+			{isReservationDialogOpen ? <ReservationCodesDialog isOpen={true} reservation={createdReservation.current!} handleClose={handleCloseReservationCodesDialog} /> : null}
 			<Snackbar
 				open={!!snackbarMessage}
 				autoHideDuration={6000}

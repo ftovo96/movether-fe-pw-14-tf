@@ -13,5 +13,6 @@ export interface Activity {
     allowAnonymous: boolean,
     reservationId?: number,
     isBanned: boolean,
+    securityCode?: string,
 }
 

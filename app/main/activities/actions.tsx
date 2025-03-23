@@ -2,6 +2,7 @@
 
 import { API_URL } from "@/app/config/constants";
 import { Activity } from "@/app/models/activity";
+import { Reservation } from "@/app/models/reservation";
 
 export async function loadActivities(params: Map<string, string | null>): Promise<Activity[]> {
     try {
@@ -48,9 +49,9 @@ export interface ReserveActivityParams {
     reservationId: number | null,
 }
 
-export async function reserveActivity(params: ReserveActivityParams) {
+export async function reserveActivity(params: ReserveActivityParams): Promise<Reservation | null> {
     console.log('Params: ', params);
-    const reservation = await fetch(`${API_URL}/reserveActivity`, {
+    const response = await fetch(`${API_URL}/reserveActivity`, {
         method: 'POST',
         body: JSON.stringify({
             "activityId": params.activity.id,
@@ -59,8 +60,28 @@ export async function reserveActivity(params: ReserveActivityParams) {
             "userId": params.userId,
             "reservationId": params.activity.reservationId,
         }),
-    })
-    .then(result => result.json())
-    .catch(() => null);
-    return reservation;
+    });
+    if (response.status === 200) {
+        const json = await response.json();
+        const reservation: Reservation = {
+            id: +json['id'],
+            securityCode: json['securityCode'],
+            companyId: +json['company_id'],
+            companyName: json['company_name'],
+            date: new Date(json['date']),
+            location: json['location'],
+            maxPartecipants: json['max_partecipants'],
+            sport: json['sport'],
+            time: json['time'],
+            activityId: +json['activity_id'],
+            availablePartecipants: +json['available_partecipants'],
+            feedbackId: null,
+            partecipants: +json['partecipants'],
+            requestedPartecipants: +json['requested_partecipants'],
+            validated: false,
+        };
+        return reservation;
+    } else {
+        return null;
+    }
 }

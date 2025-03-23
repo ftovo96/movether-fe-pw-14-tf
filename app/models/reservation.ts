@@ -15,9 +15,11 @@ export interface Reservation {
     companyName: string
     feedbackId: number | null,
     validated: boolean | null,
+    securityCode?: string,
 }
 
 export interface ReservationOption {
+    activityId: number,
     reservationId: number | null,
     time: string,
     availablePartecipants: number,

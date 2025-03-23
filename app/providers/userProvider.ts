@@ -1,6 +1,7 @@
 import { API_URL } from "../config/constants";
 import { AnonymousUser, LoggedUser } from "../models/user";
 import { createContext } from 'react';
+import { ReservationsProvider } from "./reservationsProvider";
 
 export interface LoginCredentials {
     email: string,
@@ -59,12 +60,14 @@ export class LoginProvider {
         localStorage.setItem('userId', `${user.id}`);
         localStorage.setItem('userName', `${user.name}`);
         localStorage.setItem('userSurname', `${user.surname}`);
+        ReservationsProvider.linkReservations(user.id);
         return user;
     }
     public static logout() {
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
         localStorage.removeItem('userSurname');
+        ReservationsProvider.clearReservations();
     }
 }
 
