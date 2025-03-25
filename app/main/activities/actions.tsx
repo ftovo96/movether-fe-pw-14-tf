@@ -42,23 +42,21 @@ export async function loadActivities(params: Map<string, string | null>): Promis
 }
 
 export interface ReserveActivityParams {
-    activity: Activity,
-    time: string,
+    activityOption: ActivityOption,
     partecipants: number,
     userId: number | null,
     reservationId: number | null,
 }
 
 export async function reserveActivity(params: ReserveActivityParams): Promise<Reservation | null> {
-    console.log('Params: ', params);
     const response = await fetch(`${API_URL}/reserveActivity`, {
         method: 'POST',
         body: JSON.stringify({
-            "activityId": params.activity.id,
-            "time": params.time,
+            "activityId": params.activityOption.activityId,
+            "time": params.activityOption.time,
             "partecipants": params.partecipants,
             "userId": params.userId,
-            "reservationId": params.activity.reservationId,
+            "reservationId": params.activityOption.reservationId || params.reservationId,
         }),
     });
     if (response.status === 200) {
@@ -83,5 +81,39 @@ export async function reserveActivity(params: ReserveActivityParams): Promise<Re
         return reservation;
     } else {
         return null;
+    }
+}
+
+export interface ActivityOption {
+    activityId: number,
+    reservationId: number | null,
+    time: string,
+    availablePartecipants: number,
+}
+
+export async function getActivitiesOptions(activityId: number, userId: number | null): Promise<ActivityOption[]> {
+    try {
+        const url = new URL(`${API_URL}/activities/${activityId}`);
+        url.searchParams.append('userId', `${userId}`);
+        const response = await fetch(url, { method: 'GET' });
+        const data: [] = await response.json();
+        const activityOptions: ActivityOption[] = data.map(json => {
+            console.log('RawData: ', json)
+            const activityOption: ActivityOption = {
+                activityId: +json['id'],
+                availablePartecipants: +json['availablePartecipants'],
+                time: json['time'],
+                reservationId: null,
+            };
+            if (json['reservationId']) {
+                activityOption.reservationId = +json['reservationId'];
+            }
+            return activityOption;
+        });
+        return activityOptions;
+    } catch (e) {
+        console.log(e)
+        if (e) {}
+        return [];
     }
 }

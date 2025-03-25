@@ -4,7 +4,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
 import { AccessTimeOutlined, CalendarMonthOutlined, GroupsOutlined, PlaceOutlined, SearchOutlined } from '@mui/icons-material';
-import { loadActivities, reserveActivity, ReserveActivityParams } from './actions';
+import { ActivityOption, getActivitiesOptions, loadActivities, reserveActivity, ReserveActivityParams } from './actions';
 import { useEffect } from 'react';
 import { Activity } from '@/app/models/activity';
 import Link from 'next/link';
@@ -17,13 +17,49 @@ export interface ActivityDialogProps {
 	activity: Activity,
 	isOpen: boolean,
 	handleClose: () => void,
-	handleReserveActivity: (partecipants: number, time: string) => void,
+	handleReserveActivity: (activityOption: ActivityOption, partecipants: number) => void,
 }
 
 export function ActivityDialog(props: ActivityDialogProps) {
 	const [timeValue, setTimeValue] = React.useState<string>(props.activity.times.length === 1 ? props.activity.times[0] : '');
 	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(1);
-	const partecipantsValues: number[] = Array.from({ length: props.activity.maxPartecipants }).map((x, index) => index + 1);
+	const [partecipantsValues, setPartecipantsValues] = React.useState<number[]>([]);
+	const user = React.useContext(UserContext);
+	const activityOptions = React.useRef<ActivityOption[]>([]);
+	
+	useEffect(() => {
+		_loadActivityOptions();
+	}, []);
+
+	function handleReserveActivity() {
+		if (!timeValue || ! partecipantsValue) {
+			return;
+		}
+		const _activityOption = activityOptions.current.find(activity => activity.time === timeValue)!;
+		props.handleReserveActivity(_activityOption, partecipantsValue);
+	}
+
+	async function _loadActivityOptions() {
+		const _activityOptions = await getActivitiesOptions(props.activity.id, user.isLoggedIn? user.id : null);
+		activityOptions.current = _activityOptions;
+		if (activityOptions.current.length === 1) {
+			onChangeTimeOption(activityOptions.current[0].time);
+		} else {
+			const partecipantsValues = Array.from({ length: activityOptions.current[0].availablePartecipants }).map((x, index) => index + 1);
+			setPartecipantsValues(partecipantsValues);
+		}
+		console.log(_activityOptions);
+	}
+
+	function onChangeTimeOption(time: string) {
+		setTimeValue(time);
+		const _activityOption = activityOptions.current.find(activity => activity.time === time)!;
+		const partecipantsValues = Array.from({ length: _activityOption.availablePartecipants }).map((x, index) => index + 1);
+		setPartecipantsValues(partecipantsValues);
+		if (partecipantsValue > _activityOption.availablePartecipants) {
+			setPartecipantsValue(_activityOption.availablePartecipants);
+		}
+	}
 
 	return (
 		<Dialog
@@ -44,7 +80,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 						id="demo-simple-select-filled"
 						value={timeValue}
 						disabled={props.activity.times.length < 2}
-						onChange={(event) => setTimeValue(event.target.value)}
+						onChange={(event) => onChangeTimeOption(event.target.value)}
 					>
 						{
 							props.activity.times.map(time => <MenuItem key={time} value={time}>{time}</MenuItem>)
@@ -69,7 +105,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={props.handleClose}>Annulla</Button>
-				<Button variant='outlined' onClick={() => props.handleReserveActivity(partecipantsValue, timeValue)}>
+				<Button variant='outlined' onClick={handleReserveActivity}>
 					Prenota
 				</Button>
 			</DialogActions>
@@ -258,14 +294,26 @@ export default function ActivitiesPage() {
 		setIsDialogOpen(false);
 	}
 
-	async function handleReserveActivity(partecipants: number, time: string) {
+	async function handleReserveActivity(activityOption: ActivityOption, partecipants: number) {
 		const params: ReserveActivityParams = {
-			activity: selectedActivity.current!,
+			activityOption: activityOption,
 			partecipants: partecipants,
-			reservationId: selectedActivity.current!.reservationId || null,
-			time: time,
 			userId: user.isLoggedIn ? user.id : null,
+			reservationId: null,
 		};
+		debugger
+		if (!user.isLoggedIn) {
+			// Se l'utente non ha effettuato l'accesso verifico se ha prenotazioni
+			// anonime. Se ce ne è una per l'attività attuale, aggiungo
+			// il suo id così da poterla sovrascrivere.
+			const reservations = ReservationsProvider.getReservations();
+			const foundReservation = reservations.find(res => res.activityId === activityOption.activityId);
+			console.log(foundReservation);
+			debugger;
+			if (foundReservation) {
+				params.reservationId = foundReservation.id;
+			}
+		}
 		console.log(params);
 		const reservation = await reserveActivity(params);
 		if (reservation === null) {
