@@ -1,3 +1,22 @@
+Questo è il repository lato frontend del progetto.
+
+Per avviarlo è necessario aver installato [Node.js](https://nodejs.org/en) v18.18 o successiva.
+Per l'installazione e gestione delle versioni di node.js è consigliato l'uso di [nvm](https://github.com/nvm-sh/nvm) (MacOS/Linux) o di [nvm-windows](https://github.com/coreybutler/nvm-windows) (Windows).
+Il frontend del progetto è stato realizzato con Next.js, di cui si trovano le varie informazioni (in inglese) in fondo a questo file.
+
+## Struttura del progetto
+
+Nella cartella app/ si trovano i file del frontend, nello specifico:
+* Le cartelle login/ e register/ contenti le pagine per effettuare l'accesso e/o la registrazione al sistema
+* La cartella main/ contenente a sua volta le cartelle contenenti le pagine relative alle attività, prenotazioni e premi
+* La cartella models/ contente la definizione delle entità del progetto
+* La cartella providers/ contentente i "servizi" del progetto (gestore autenticazione e prenotazioni "anonime").
+
+Per altre informazioni sul progetto (Casi d'uso, Diagramma ER, Documentazione API, ecc...) fare riferimento alla cartella Documentazione/ nel repository del backend.
+
+
+# README Next.js
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
