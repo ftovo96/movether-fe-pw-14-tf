@@ -9,7 +9,7 @@ import { UserContext } from '@/app/providers/userProvider';
 import { Feedback } from '@/app/models/feedback';
 import { AccountCircleOutlined, ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { loadActivities, reserveActivity, ReserveActivityParams } from '../../activities/actions';
+import { ActivityOption, loadActivities, reserveActivity, ReserveActivityParams } from '../../activities/actions';
 import { getCompany, loadFeedbacks } from './actions';
 import { ActivityCard, ActivityDialog, ReservationCodesDialog } from '../../activities/page';
 import { useParams } from 'next/navigation'
@@ -121,18 +121,28 @@ export default function ActivitiesPage() {
   }
 
   function handleCloseReservationCodesDialog() {
-		setIsReservationDialogOpen(false);
-		_loadActivities();
-	}
+    setIsReservationDialogOpen(false);
+    _loadActivities();
+  }
 
-  async function handleReserveActivity() {
+  async function handleReserveActivity(activityOption: ActivityOption, partecipants: number) {
     const params: ReserveActivityParams = {
-      activity: selectedActivity.current!,
-      partecipants: 1,
-      reservationId: selectedActivity.current!.reservationId || null,
-      time: selectedActivity.current!.times[0],
-      userId: null,
+      activityOption: activityOption,
+      partecipants: partecipants,
+      userId: user.isLoggedIn ? user.id : null,
+      reservationId: null,
     };
+    if (!user.isLoggedIn) {
+      // Se l'utente non ha effettuato l'accesso verifico se ha prenotazioni
+      // anonime. Se ce ne è una per l'attività attuale, aggiungo
+      // il suo id così da poterla sovrascrivere.
+      const reservations = ReservationsProvider.getReservations();
+      const foundReservation = reservations.find(res => res.activityId === activityOption.activityId);
+      console.log(foundReservation);
+      if (foundReservation) {
+        params.reservationId = foundReservation.id;
+      }
+    }
     console.log(params);
     const reservation = await reserveActivity(params);
     if (reservation === null) {
@@ -178,7 +188,7 @@ export default function ActivitiesPage() {
           )}
         </Box>
       </Box>
-      {isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={() => handleReserveActivity()}></ActivityDialog> : null}
+      {isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={handleReserveActivity}></ActivityDialog> : null}
       {isReservationDialogOpen ? <ReservationCodesDialog isOpen={true} reservation={createdReservation.current!} handleClose={handleCloseReservationCodesDialog} /> : null}
       <Snackbar
         open={!!snackbarMessage}
