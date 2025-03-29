@@ -9,6 +9,12 @@ export interface LoginCredentials {
 }
 
 export class LoginProvider {
+    /**
+     * @description Restituisce i dati dell'utente attuale.
+     * Se ha effettuato l'accesso, verranno restituiti i dati
+     * dell'utente, altrimenti verranno restituiti i dati dell'
+     * utente anonimo.
+     */
     public static getUser(): LoggedUser | AnonymousUser {
         let uid: number;
         if (localStorage.getItem('userUid') !== null) {
@@ -35,9 +41,22 @@ export class LoginProvider {
             return user;
         }
     }
+    /**
+     * @description Restituisce lo stato di autenticazione dell'utente
+     */
     public static isLoggedIn(): boolean {
         return this.getUser().isLoggedIn;
     }
+    /**
+     * @param {LoginCredentials} params Parametri per effettuare il login
+     * (email e password)
+     * @returns {Promise<LoggedUser | null>} Promise con i dati dell'utente
+     * (se le credenziali sono corrette) o null
+     * @description Effettua il login dell'utente e salva i dati nel localStorage
+     * per farli persistere in caso di reload della pagina.
+     * Inoltre se sono presenti delle prenotazioni anonime, prova a collegarle
+     * all'account dell'utente in modo trasparente.
+     */
     public static async login(params: LoginCredentials): Promise<LoggedUser | null> {
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
@@ -63,6 +82,9 @@ export class LoginProvider {
         ReservationsProvider.linkReservations(user.id);
         return user;
     }
+    /**
+     * @description Effettua il logout dell'utente
+     */
     public static logout() {
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');

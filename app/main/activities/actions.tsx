@@ -4,6 +4,12 @@ import { API_URL } from "@/app/config/constants";
 import { Activity } from "@/app/models/activity";
 import { Reservation } from "@/app/models/reservation";
 
+/**
+ * @param {Map<string, string | null>} params Parametri per filtrare le attività (sport, luogo, testo ricerca...)
+ * @returns {Promise<Activity[]>} Lista attività
+ * @description Restituisce la lista delle attività, filtrate in base
+ * ai parametri passati in input.
+ */
 export async function loadActivities(params: Map<string, string | null>): Promise<Activity[]> {
     try {
         const url = new URL(`${API_URL}/activities`);
@@ -48,6 +54,12 @@ export interface ReserveActivityParams {
     reservationId: number | null,
 }
 
+/**
+ * @param {ReserveActivityParams} params parametri per prenotazione
+ * @returns {Promise<Reservation | null>} Prenotazione effettuata
+ * @description Crea la prenotazione di una attività e ne restituisce
+ * i dati o, se non è possibile prenotarla, restituisce null.
+ */
 export async function reserveActivity(params: ReserveActivityParams): Promise<Reservation | null> {
     const response = await fetch(`${API_URL}/reserveActivity`, {
         method: 'POST',
@@ -91,6 +103,20 @@ export interface ActivityOption {
     availablePartecipants: number,
 }
 
+/**
+ * @param {number} activityId id attività
+ * @param {number} userId id utente
+ * @returns {Promise<ActivityOption[]>} Lista "opzioni" prenotazione
+ * @description Restituisce la lista delle "opzioni" di prenotazione,
+ * che corrispondono effettivamente alle attività che hanno in comune
+ * con quella con id = activityId data e palestra.
+ * Nella struttura dati del sistema ogni attività ha un orario, per
+ * gestire il fatto che una attività potrebbe avere più slot temporari
+ * in cui si svolge (es: alle 09:00 e alle 16:00) le attività vengono
+ * raggruppate per giorno e palestra e presentate all'utente come se
+ * fossero una. Tramite questa API è possibile passare da un'attività
+ * all'altra.
+ */
 export async function getActivitiesOptions(activityId: number, userId: number | null): Promise<ActivityOption[]> {
     try {
         const url = new URL(`${API_URL}/activities/${activityId}`);

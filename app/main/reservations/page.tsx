@@ -20,6 +20,10 @@ interface FeedbackDialogProps {
 	handleSendFeedback: (score: number, message: string) => void,
 }
 
+/**
+ * @description Componente che gestisce la Dialog (finestra) per lasciare il
+ * feedback di una attività svolta.
+ */
 function FeedbackDialog(props: FeedbackDialogProps) {
 	const [score, setScore] = React.useState(5);
 	const [message, setMessage] = React.useState('');
@@ -32,14 +36,13 @@ function FeedbackDialog(props: FeedbackDialogProps) {
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Lascia feedback"}
 			</DialogTitle>
 			<DialogContent
 				sx={{ minWidth: 320 }}>
+				<Typography>Come valuteresti la tua esperienza?</Typography>
 				<Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
 					<Typography>Punteggio:</Typography>
 					<Rating
@@ -53,7 +56,6 @@ function FeedbackDialog(props: FeedbackDialogProps) {
 				<Box sx={{ padding: 1 }} />
 				<TextField
 					fullWidth
-					id="outlined-multiline-flexible"
 					label="Messaggio (opzionale)"
 					multiline
 					value={message}
@@ -77,15 +79,16 @@ interface DeleteDialogProps {
 	handleDeleteReservation: (reservation: Reservation) => void,
 }
 
+/**
+ * @description Schermata per eliminare una prenotazione
+ */
 function DeleteReservationDialog(props: DeleteDialogProps) {
 	return (
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Eliminare prenotazione?"}
 			</DialogTitle>
 			<DialogContent
@@ -110,6 +113,10 @@ interface EditDialogProps {
 	handleEditReservation: (time: string, partecipants: number, option: ReservationOption, reservation: Reservation) => void,
 }
 
+
+/**
+ * @description Componente che gestisce la Dialog per modificare una prenotazione
+ */
 function EditReservationDialog(props: EditDialogProps) {
 	const [reservationOption, setReservationOption] = React.useState<ReservationOption>(props.reservationOptions[0]);
 	const [timeValue, setTimeValue] = React.useState<string>(props.reservation.time);
@@ -133,19 +140,15 @@ function EditReservationDialog(props: EditDialogProps) {
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Modifica prenotazione"}
 			</DialogTitle>
 			<DialogContent
 				sx={{ minWidth: 420 }}>
 				<FormControl variant="filled" fullWidth>
-					<InputLabel id="demo-simple-select-filled-label">Orario</InputLabel>
+					<InputLabel>Orario</InputLabel>
 					<Select
-						labelId="demo-simple-select-filled-label"
-						id="demo-simple-select-filled"
 						value={timeValue}
 						disabled={props.reservationOptions.length < 2}
 						onChange={(event) => handleChangeTime(event.target.value)}
@@ -157,10 +160,8 @@ function EditReservationDialog(props: EditDialogProps) {
 				</FormControl>
 				<Box sx={{ padding: 1 }} />
 				<FormControl variant="filled" fullWidth>
-					<InputLabel id="demo-simple-select-filled-label">Posti</InputLabel>
+					<InputLabel>Posti</InputLabel>
 					<Select
-						labelId="demo-simple-select-filled-label"
-						id="demo-simple-select-filled"
 						value={partecipantsValue}
 						disabled={partecipantsValues.length < 2}
 						onChange={(event) => setPartecipantsValue(+event.target.value)}
@@ -187,6 +188,11 @@ interface AddAnonymousReservationDialogProps {
 	handleAddReservation: () => void,
 }
 
+
+/**
+ * @description Componente che gestisce la Dialog (finestra) per aggiungere una
+ * prenotazione anonima
+ */
 function AddAnonymousReservationDialog(props: AddAnonymousReservationDialogProps) {
 	const [reservationId, setReservationId] = React.useState<string>('');
 	const [reservationIdError, setReservationIdError] = React.useState<string>('');
@@ -244,10 +250,8 @@ function AddAnonymousReservationDialog(props: AddAnonymousReservationDialogProps
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Aggiungi prenotazione tramite codice"}
 			</DialogTitle>
 			<DialogContent
@@ -304,6 +308,9 @@ interface ReservationCardProps {
 	// handleClickActivity: (activity: Activity) => void,
 }
 
+/**
+ * @description Componente che mostra i dati di una prenotazione
+ */
 function ReservationCard(props: ReservationCardProps) {
 	function getRow(text: string, icon: React.ReactElement) {
 		return (
@@ -319,10 +326,10 @@ function ReservationCard(props: ReservationCardProps) {
 	let actions: React.ReactElement[] = [];
 	let reservationTitle;
 	if (props.reservation !== null) {
-		reservationTitle = <>{props.reservation.sport} - <Link href={`/main/companies/${props.reservation.companyId}`}>{props.reservation.companyName}</Link></>;
+		reservationTitle = <>{props.reservation.sport} - <Link style={{ textDecoration: 'underline' }} href={`/main/companies/${props.reservation.companyId}`}>{props.reservation.companyName}</Link></>;
 		const reservationDate = new Date(`${props.reservation.date.toDateString()} ${props.reservation.time}`);
 		const hasExpired = Date.now() > reservationDate.getTime();
-		const isExpiring = (Date.now() - reservationDate.getTime()) < (24 * 60 * 60 * 1000);
+		const isExpiring = (reservationDate.getTime() - Date.now()) < (24 * 60 * 60 * 1000);
 		isDisabled = hasExpired && !isExpiring && props.reservation.validated === false;
 		if (props.reservation.validated) {
 			statusChip = <Chip label='Validata' color='success' size='small' />;
@@ -560,37 +567,37 @@ export default function ReservationsPage() {
 	}
 
 	const banner = <>
-	<Alert severity="info">
-		<Typography>
-			Per gestire le tue prenotazioni&nbsp;
-			<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
-			&nbsp;oppure&nbsp;
-			<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
-		</Typography>
-	</Alert>
-	<Box sx={{ padding: 1, }} />
-</>
+		<Alert severity="info">
+			<Typography>
+				Per gestire le tue prenotazioni&nbsp;
+				<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
+				&nbsp;oppure&nbsp;
+				<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
+			</Typography>
+		</Alert>
+		<Box sx={{ padding: 1, }} />
+	</>
 
 	const reservationsToRender = loading ? [null, null, null, null] : reservations;
 	return (
 		<>
 			<Box sx={{ padding: 2, }}>
-			<SectionHeader
-				title='Prenotazioni'
-				showBackButton={false}
-				showSearchField={user.isLoggedIn}
-				showFilters={user.isLoggedIn}
-				showBanner={!user.isLoggedIn}
-				search={search}
-				sport={sport}
-				location={location}
-				sports={sports}
-				locations={locations}
-				banner={banner}
-				onChangeSearch={handleChangeSearch}
-				onChangeSport={handleChangeSport}
-				onChangeLocation={handleChangeLocation}
-			/>
+				<SectionHeader
+					title='Prenotazioni'
+					showBackButton={false}
+					showSearchField={user.isLoggedIn}
+					showFilters={user.isLoggedIn}
+					showBanner={!user.isLoggedIn}
+					search={search}
+					sport={sport}
+					location={location}
+					sports={sports}
+					locations={locations}
+					banner={banner}
+					onChangeSearch={handleChangeSearch}
+					onChangeSport={handleChangeSport}
+					onChangeLocation={handleChangeLocation}
+				/>
 				{
 					reservationsToRender.length ?
 						<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>

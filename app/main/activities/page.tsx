@@ -21,6 +21,10 @@ export interface ActivityDialogProps {
 	handleReserveActivity: (activityOption: ActivityOption, partecipants: number) => void,
 }
 
+/**
+ * @description Componente che gestisce la Dialog (finestra) per effettuare
+ * e modificare le prenotazioni.
+ */
 export function ActivityDialog(props: ActivityDialogProps) {
 	const [timeValue, setTimeValue] = React.useState<string>(props.activity.times.length === 1 ? props.activity.times[0] : '');
 	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(1);
@@ -66,19 +70,15 @@ export function ActivityDialog(props: ActivityDialogProps) {
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Prenota attività"}
 			</DialogTitle>
 			<DialogContent
 				sx={{ minWidth: 320 }}>
 				<FormControl variant="filled" fullWidth>
-					<InputLabel id="demo-simple-select-filled-label">Orario</InputLabel>
+					<InputLabel>Orario</InputLabel>
 					<Select
-						labelId="demo-simple-select-filled-label"
-						id="demo-simple-select-filled"
 						value={timeValue}
 						disabled={props.activity.times.length < 2}
 						onChange={(event) => onChangeTimeOption(event.target.value)}
@@ -90,10 +90,8 @@ export function ActivityDialog(props: ActivityDialogProps) {
 				</FormControl>
 				<Box sx={{ padding: 1 }} />
 				<FormControl variant="filled" fullWidth>
-					<InputLabel id="demo-simple-select-filled-label">Posti</InputLabel>
+					<InputLabel>Posti</InputLabel>
 					<Select
-						labelId="demo-simple-select-filled-label"
-						id="demo-simple-select-filled"
 						value={partecipantsValue}
 						disabled={partecipantsValues.length < 2}
 						onChange={(event) => setPartecipantsValue(+event.target.value)}
@@ -120,15 +118,17 @@ export interface ReservationCodesDialogProps {
 	handleClose: () => void,
 }
 
+/**
+ * @description Componente che mostra la dialog con il numero di prenotazione (id)
+ * e codice di sicurezza ("password") per la gestione delle prenotazioni "anonime"
+ */
 export function ReservationCodesDialog(props: ReservationCodesDialogProps) {
 	return (
 		<Dialog
 			open={props.isOpen}
 			onClose={props.handleClose}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">
+			<DialogTitle>
 				{"Prenotazione effettuata!"}
 			</DialogTitle>
 			<DialogContent
@@ -161,6 +161,9 @@ export interface ActivityCardProps {
 	handleClickActivity: (activity: Activity) => void,
 }
 
+/**
+ * @description Componente che mostra i dati di una attività
+ */
 export function ActivityCard(props: ActivityCardProps) {
 	function getRow(text: string, icon: React.ReactElement) {
 		return (
@@ -180,7 +183,7 @@ export function ActivityCard(props: ActivityCardProps) {
 		isAvailable = true;
 	} else {
 		activityTitle = <>
-			{props.activity.sport} {props.showCompanyLink ? <>- <Link href={`/main/companies/${props.activity.companyId}`}>{props.activity.companyName}</Link></> : null}
+			{props.activity.sport} {props.showCompanyLink ? <>- <Link style={{ textDecoration: 'underline' }} href={`/main/companies/${props.activity.companyId}`}>{props.activity.companyName}</Link></> : null}
 		</>
 		if (props.activity.isBanned) {
 			statusChip = <Chip label='Non disponibile' color='error' size='small' />;
@@ -335,6 +338,11 @@ export default function ActivitiesPage() {
 		deboucedLoadActivities();
 	}
 
+	/**
+	 * @description Funzione che fa da wrapper a quella che carica le
+	 * attività per evitare di effettuare troppe chiamate consecutive,
+	 * riducendo la frequenza massima a 1 ogni 250ms (4 al secondo).
+	 */
 	async function deboucedLoadActivities() {
 		if (timeoutRef.current !== null) {
 			clearTimeout(timeoutRef.current);
@@ -353,6 +361,8 @@ export default function ActivitiesPage() {
 		setSports(_sports);
 	}
 
+	// Se sto caricando le attività creo una lista di elementi fittizzi (null)
+	// per mostrare gli skeleton durante il caricamento.
 	const activitiesToRender = loading ? [null, null, null, null] : activities;
 	return (
 		<>

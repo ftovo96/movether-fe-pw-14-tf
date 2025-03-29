@@ -40,3 +40,15 @@ a {
     color-scheme: dark;
   }
 }
+
+@media screen and (min-width: 992px) {
+  .main-content {
+    background: linear-gradient(135deg, #fff1d4 0%, #dde9fc 85%, #d1e7dd 85%, #d1e7dd 95%, #a01 95%, #a01 100%);
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .main-content {
+    background: linear-gradient(135deg, #cfe2ff 5%, #cfe2ff 12%, #fff3cd 12%, #fff3cd 20%, #dde9fc 85%, #d1e7dd 85%, #d1e7dd 95%, #a01 95%, #a01 100%);
+  }
+}

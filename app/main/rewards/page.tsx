@@ -16,6 +16,9 @@ interface RewardCardProps {
   onClickRedeemReward: (reward: Reward) => void
 }
 
+/**
+ * @description Componente che mostra i dati di un premio disponibile
+ */
 function RewardCard(props: RewardCardProps) {
   return (
     <Card sx={{
@@ -58,6 +61,9 @@ interface RedeemedRewardCardProps {
   redeemedReward: RedeemedReward | null,
 }
 
+/**
+ * @description Componente che mostra i dati di un premio riscattato
+ */
 function RedeemedRewardCard(props: RedeemedRewardCardProps) {
   return (
     <Card sx={{
@@ -86,15 +92,17 @@ interface DeleteDialogProps {
   handleRedeemReward: () => void,
 }
 
+/**
+ * @description Componente che gestisce la Dialog (finestra) per riscattare
+ * un premio
+ */
 function RedeemRewardDialog(props: DeleteDialogProps) {
   return (
     <Dialog
       open={props.isOpen}
       onClose={props.handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
+      <DialogTitle>
         {"Riscatta premio"}
       </DialogTitle>
       <DialogContent

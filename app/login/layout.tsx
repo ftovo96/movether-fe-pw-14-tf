@@ -28,8 +28,7 @@ export default function Layout({
   return <>
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <Box sx={{
-        backgroundColor: '#6fbcff29',
+      <Box className="main-content" sx={{
         width: `100vw`,
         height: '100vh',
         display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'

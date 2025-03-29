@@ -4,6 +4,9 @@ import { API_URL } from "@/app/config/constants";
 import { Company } from "@/app/models/company";
 import { Feedback } from "@/app/models/feedback";
 
+/**
+ * @description Restituisce i feedback della palestra
+ */
 export async function loadFeedbacks(companyId: string): Promise<Feedback[]> {
     const url = new URL(`${API_URL}/feedbacks/${companyId}`);
     const response = await fetch(url);
@@ -23,6 +26,9 @@ export async function loadFeedbacks(companyId: string): Promise<Feedback[]> {
     return feedbacks;
 }
 
+/**
+ * @description Restituisce i dati della palestra
+ */
 export async function getCompany(companyId: string): Promise<Company> {
     const url = new URL(`${API_URL}/companies/${companyId}`);
     const response = await fetch(url);

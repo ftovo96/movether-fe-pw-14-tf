@@ -2,7 +2,7 @@
 
 // import type { Metadata } from "next";
 // // import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { AccountCircleOutlined, DirectionsRun, DirectionsRunOutlined, EmojiEvents, EmojiEventsOutlined, Event, EventOutlined, VisibilityOffOutlined } from "@mui/icons-material";
+import { AccountCircleOutlined, DirectionsRun, DirectionsRunOutlined, EmojiEvents, EmojiEventsOutlined, Event, EventOutlined, Handshake, VisibilityOffOutlined } from "@mui/icons-material";
 import { BottomNavigation, BottomNavigationAction, Button, Menu, MenuItem, Paper, Typography } from "@mui/material";
 import Box from "@mui/material/Box/Box";
 import CssBaseline from "@mui/material/CssBaseline/CssBaseline";
@@ -18,7 +18,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LoginProvider, UserContext } from "../providers/userProvider";
 import { useState } from "react";
 // export const metadata: Metadata = {
-//   title: "BudGym",
+//   title: "Movether",
 //   description: "Trova il tuo prossimo sport!",
 // };
 
@@ -49,9 +49,12 @@ export default function Layout({
 	const drawer = (
 		<div style={{ height: '100vh' }}>
 			<Toolbar>
-				<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-					BudGym
-				</Typography>
+				<Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+					<Handshake fontSize="large" />
+					<Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
+						Movether
+					</Typography>
+				</Box>
 			</Toolbar>
 			<List sx={{ height: `calc(100vh - ${toolbarHeight}px)`, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 				<ListItem>
@@ -116,7 +119,7 @@ export default function Layout({
 			return 1;
 		} else if (urlPath.includes('rewards')) {
 			return 2;
-		} else if (urlPath.includes('activities')){
+		} else if (urlPath.includes('activities')) {
 			return 0;
 		} else {
 			const savedViewIndex = localStorage.getItem('mainViewIndex');
@@ -147,7 +150,7 @@ export default function Layout({
 	}
 
 	return <UserContext.Provider value={user}>
-		<Box sx={{ display: 'flex', backgroundColor: '#6fbcff29' }}>
+		<Box className="main-content" sx={{ display: 'flex', backgroundColor: '#6fbcff29' }}>
 			<CssBaseline />
 			{
 				isMobile ? null :
@@ -173,23 +176,23 @@ export default function Layout({
 					Photos
 				</Typography> */}
 					<Box component="div" sx={{ flexGrow: 1 }}></Box>
-						<Button startIcon={user.isLoggedIn? <AccountCircleOutlined /> : <VisibilityOffOutlined />} onClick={handleClickUserMenu}>
-							{user.isLoggedIn? `${user.name} ${user.surname}` : 'Modalità anonima'}
-						</Button>
-						<Menu
-							id="user-menu"
-							anchorEl={anchorEl}
-							open={!!anchorEl}
-							onClose={handleCloseUserMenu}
-						>
-							{
-								user.isLoggedIn?
+					<Button startIcon={user.isLoggedIn ? <AccountCircleOutlined /> : <VisibilityOffOutlined />} onClick={handleClickUserMenu}>
+						{user.isLoggedIn ? `${user.name} ${user.surname}` : 'Modalità anonima'}
+					</Button>
+					<Menu
+						id="user-menu"
+						anchorEl={anchorEl}
+						open={!!anchorEl}
+						onClose={handleCloseUserMenu}
+					>
+						{
+							user.isLoggedIn ?
 								<MenuItem onClick={() => logout()}>Logout</MenuItem>
 								:
 								<MenuItem onClick={() => router.push('/login')}>Accedi</MenuItem>
 
-							}
-						</Menu>
+						}
+					</Menu>
 				</Box>
 				<Paper elevation={isMobile ? 0 : 1} sx={{ height: contentHeight + 'px', overflow: 'scroll', margin: 2, borderRadius: 2 }}>
 					<Box>
