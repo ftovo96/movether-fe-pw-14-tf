@@ -177,15 +177,19 @@ export default function ActivitiesPage() {
         </Box>
         <Typography sx={{ fontSize: 20, fontWeight: 'bold', paddingBottom: 2 }}>Gli ultimi feedback</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
-          {feedbacksToRender.map((feedback, index) =>
+          {feedbacksToRender.length ? feedbacksToRender.map((feedback, index) =>
             <FeedbackCard key={feedback?.id || index} feedback={feedback} />
-          )}
+          ) :
+            <Typography variant='h6' align='center' marginTop={4} marginBottom={4}>Nessun feedback</Typography>
+          }
         </Box>
         <Typography sx={{ fontSize: 20, fontWeight: 'bold', paddingTop: 6, paddingBottom: 2 }}>Attività</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
-          {activitiesToRender.map((activity, index) =>
+          {activitiesToRender.length ? activitiesToRender.map((activity, index) =>
             <ActivityCard key={activity?.id || index} activity={activity} handleClickActivity={handleClickActivity} isLoggedIn={user.isLoggedIn} showCompanyLink={false} />
-          )}
+          ) :
+            <Typography variant='h6' align='center' marginTop={4} marginBottom={4}>Nessuna attività disponibile</Typography>
+          }
         </Box>
       </Box>
       {isDialogOpen ? <ActivityDialog isOpen={isDialogOpen} activity={selectedActivity.current!} handleClose={handleCloseDialog} handleReserveActivity={handleReserveActivity}></ActivityDialog> : null}
