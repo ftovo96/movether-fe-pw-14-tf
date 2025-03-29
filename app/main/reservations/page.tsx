@@ -184,6 +184,8 @@ function EditReservationDialog(props: EditDialogProps) {
 
 interface AddAnonymousReservationDialogProps {
 	isOpen: boolean,
+	isLoggedIn: boolean,
+	userId: number | null,
 	handleClose: () => void,
 	handleAddReservation: () => void,
 }
@@ -217,6 +219,11 @@ function AddAnonymousReservationDialog(props: AddAnonymousReservationDialogProps
 			const reservation = await addAnonymousReservation(+reservationId, securityCode);
 			if (reservation) {
 				ReservationsProvider.saveReservation(reservation);
+				// Se l'utente ha effettuato l'accesso collego subito
+				// la prenotazione anonima al suo account.
+				if (props.isLoggedIn) {
+					ReservationsProvider.linkReservations(props.userId!);
+				}
 				props.handleAddReservation();
 			} else {
 				setReservationNotFound(true);
@@ -566,17 +573,30 @@ export default function ReservationsPage() {
 		setSports(_sports);
 	}
 
-	const banner = <>
-		<Alert severity="info">
-			<Typography>
-				Per gestire le tue prenotazioni&nbsp;
-				<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
-				&nbsp;oppure&nbsp;
-				<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
-			</Typography>
-		</Alert>
-		<Box sx={{ padding: 1, }} />
-	</>
+	let banner;
+	if (user.isLoggedIn) {
+		banner = <>
+			<Alert severity="info">
+				<Typography>
+					Hai effettuato prenotazioni senza essere loggato?&nbsp;
+					<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>Aggiungile tramite codice!</span>
+				</Typography>
+			</Alert>
+			<Box sx={{ padding: 1, }} />
+		</>
+	} else {
+		banner = <>
+			<Alert severity="info">
+				<Typography>
+					Per gestire le tue prenotazioni&nbsp;
+					<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
+					&nbsp;oppure&nbsp;
+					<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
+				</Typography>
+			</Alert>
+			<Box sx={{ padding: 1, }} />
+		</>
+	}
 
 	const reservationsToRender = loading ? [null, null, null, null] : reservations;
 	return (
@@ -587,7 +607,7 @@ export default function ReservationsPage() {
 					showBackButton={false}
 					showSearchField={user.isLoggedIn}
 					showFilters={user.isLoggedIn}
-					showBanner={!user.isLoggedIn}
+					showBanner={true}
 					search={search}
 					sport={sport}
 					location={location}
@@ -612,7 +632,7 @@ export default function ReservationsPage() {
 			{isFeedbackDialogOpen ? <FeedbackDialog isOpen={isFeedbackDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseFeedbackDialog} handleSendFeedback={handleSendFeedback} /> : null}
 			{isDeleteDialogOpen ? <DeleteReservationDialog isOpen={isDeleteDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseDeleteDialog} handleDeleteReservation={_deleteReservation} /> : null}
 			{isEditDialogOpen ? <EditReservationDialog isOpen={isEditDialogOpen} reservation={selectedReservation.current!} reservationOptions={reservationOptions} handleClose={handleCloseEditDialog} handleEditReservation={_editReservation} /> : null}
-			{isAnonymousReservationDialogOpen ? <AddAnonymousReservationDialog isOpen={true} handleClose={() => setIsAnonymousReservationDialogOpen(false)} handleAddReservation={handleAddAnonymousReservation} /> : null}
+			{isAnonymousReservationDialogOpen ? <AddAnonymousReservationDialog isOpen={true} isLoggedIn={user.isLoggedIn} userId={user.isLoggedIn? user.id : null} handleClose={() => setIsAnonymousReservationDialogOpen(false)} handleAddReservation={handleAddAnonymousReservation} /> : null}
 			<Snackbar
 				open={!!snackbarMessage}
 				autoHideDuration={6000}
