@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Alert, Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Rating, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
-import { CalendarMonthOutlined, GroupsOutlined, PlaceOutlined, SearchOutlined } from '@mui/icons-material';
+import { Alert, Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Rating, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
+import { CalendarMonthOutlined, GroupsOutlined, PlaceOutlined } from '@mui/icons-material';
 import { addAnonymousReservation, deleteReservation, editReservation, EditReservationParams, FeedbackParams, getReservation, getReservationOptions, loadReservations, sendFeedback } from './actions';
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { UserContext } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
 import { Reservation, ReservationOption } from '@/app/models/reservation';
 import { ReservationsProvider } from '@/app/providers/reservationsProvider';
+import { SectionHeader } from '@/app/widgets/section-header';
 
 interface FeedbackDialogProps {
 	reservation: Reservation,
@@ -558,88 +559,38 @@ export default function ReservationsPage() {
 		setSports(_sports);
 	}
 
+	const banner = <>
+	<Alert severity="info">
+		<Typography>
+			Per gestire le tue prenotazioni&nbsp;
+			<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
+			&nbsp;oppure&nbsp;
+			<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
+		</Typography>
+	</Alert>
+	<Box sx={{ padding: 1, }} />
+</>
+
 	const reservationsToRender = loading ? [null, null, null, null] : reservations;
 	return (
 		<>
 			<Box sx={{ padding: 2, }}>
-				<Typography sx={{ fontSize: 26, fontWeight: 'bold', paddingBottom: 2 }}>Prenotazioni</Typography>
-				{
-					user.isLoggedIn ?
-						<>
-							<OutlinedInput fullWidth placeholder='Cerca...' value={search} onChange={(event) => handleChangeSearch(event.target.value)} size='small' endAdornment={
-								<InputAdornment position='end'><SearchOutlined /></InputAdornment>
-							} />
-							<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2, paddingTop: 2, paddingBottom: 2 }}>
-								<Box sx={{
-									minWidth: 275, flexGrow: 1,
-									flexShrink: 1,
-									flexBasis: 0,
-									display: 'flex',
-									flexDirection: 'column',
-									justifyContent: 'space-between',
-								}}>
-									<TextField
-										select
-										defaultValue="ALL"
-										value={sport}
-										onChange={(event) => handleChangeSport(event.target.value)}
-										size='small'
-										slotProps={{
-											input: {
-												startAdornment: <InputAdornment position="start">Sport: </InputAdornment>,
-											},
-										}}
-									>
-										{sports.map((sport) => (
-											<MenuItem key={sport} value={sport}>
-												{sport === 'ALL' ? 'Tutti' : sport}
-											</MenuItem>
-										))}
-									</TextField>
-
-								</Box>
-								<Box sx={{
-									minWidth: 275, flexGrow: 1,
-									flexShrink: 1,
-									flexBasis: 0,
-									display: 'flex',
-									flexDirection: 'column',
-									justifyContent: 'space-between',
-								}}>
-									<TextField
-										select
-										defaultValue="ALL"
-										value={location}
-										onChange={(event) => handleChangeLocation(event.target.value)}
-										size='small'
-										slotProps={{
-											input: {
-												startAdornment: <InputAdornment position="start">Località: </InputAdornment>,
-											},
-										}}
-									>
-										{locations.map((location) => (
-											<MenuItem key={location} value={location}>
-												{location === 'ALL' ? 'Tutti' : location}
-											</MenuItem>
-										))}
-									</TextField>
-								</Box>
-							</Box>
-						</>
-						:
-						<>
-							<Alert severity="info">
-								<Typography>
-									Per gestire le tue prenotazioni&nbsp;
-									<Link style={{ textDecoration: 'underline' }} href={'/login'}>effettua il login</Link>
-									&nbsp;oppure&nbsp;
-									<span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => setIsAnonymousReservationDialogOpen(true)}>usa il codice di prenotazione</span>
-								</Typography>
-							</Alert>
-							<Box sx={{ padding: 1, }} />
-						</>
-				}
+			<SectionHeader
+				title='Prenotazioni'
+				showBackButton={false}
+				showSearchField={user.isLoggedIn}
+				showFilters={user.isLoggedIn}
+				showBanner={!user.isLoggedIn}
+				search={search}
+				sport={sport}
+				location={location}
+				sports={sports}
+				locations={locations}
+				banner={banner}
+				onChangeSearch={handleChangeSearch}
+				onChangeSport={handleChangeSport}
+				onChangeLocation={handleChangeLocation}
+			/>
 				{
 					reservationsToRender.length ?
 						<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>

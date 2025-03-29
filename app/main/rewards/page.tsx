@@ -7,6 +7,7 @@ import { loadRedeemedRewards, loadRewards, loadUserPoints, redeemReward } from '
 import { UserContext } from '@/app/providers/userProvider';
 import { RedeemedReward, Reward } from '@/app/models/reward';
 import Link from 'next/link';
+import { SectionHeader } from '@/app/widgets/section-header';
 
 interface RewardCardProps {
   reward: Reward | null,
@@ -166,14 +167,21 @@ export default function Rewards() {
   } else {
     alertMessage = <Typography>Per riscattare i premi devi <Link style={{ textDecoration: 'underline' }} href={'/login'}>effettuare il login</Link>!</Typography>
   }
+  const banner = <Alert severity="info">{alertMessage}</Alert>;
 
   const rewardsToRender = isLoadingRewards ? [null, null, null] : rewards;
   const redeemedRewardsToRender = isLoadingRedeemedRewards ? [null, null, null] : redeemedRewards;
   return (
     <>
       <Box sx={{ padding: 2, }}>
-        <Typography sx={{ fontSize: 26, fontWeight: 'bold', paddingBottom: 2 }}>Premi</Typography>
-        <Alert severity="info">{alertMessage}</Alert>
+        <SectionHeader
+          title='Premi'
+          showBackButton={false}
+          showSearchField={false}
+          showFilters={false}
+          showBanner={true}
+          banner={banner}
+        />
         <Box sx={{ padding: 1 }} />
         <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
           {rewardsToRender.map((reward, index) =>

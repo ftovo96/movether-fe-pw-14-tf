@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, InputLabel, MenuItem, OutlinedInput, Select, Skeleton, Snackbar, TextField, Typography } from '@mui/material';
-import { AccessTimeOutlined, CalendarMonthOutlined, GroupsOutlined, PlaceOutlined, SearchOutlined } from '@mui/icons-material';
+import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Skeleton, Snackbar, Typography } from '@mui/material';
+import { AccessTimeOutlined, CalendarMonthOutlined, GroupsOutlined, PlaceOutlined } from '@mui/icons-material';
 import { ActivityOption, getActivitiesOptions, loadActivities, reserveActivity, ReserveActivityParams } from './actions';
 import { useEffect } from 'react';
 import { Activity } from '@/app/models/activity';
@@ -12,6 +12,7 @@ import { UserContext } from '@/app/providers/userProvider';
 import { loadLocations, loadSports } from '../filters';
 import { Reservation } from '@/app/models/reservation';
 import { ReservationsProvider } from '@/app/providers/reservationsProvider';
+import { SectionHeader } from '@/app/widgets/section-header';
 
 export interface ActivityDialogProps {
 	activity: Activity,
@@ -301,7 +302,6 @@ export default function ActivitiesPage() {
 			userId: user.isLoggedIn ? user.id : null,
 			reservationId: null,
 		};
-		debugger
 		if (!user.isLoggedIn) {
 			// Se l'utente non ha effettuato l'accesso verifico se ha prenotazioni
 			// anonime. Se ce ne è una per l'attività attuale, aggiungo
@@ -309,7 +309,6 @@ export default function ActivitiesPage() {
 			const reservations = ReservationsProvider.getReservations();
 			const foundReservation = reservations.find(res => res.activityId === activityOption.activityId);
 			console.log(foundReservation);
-			debugger;
 			if (foundReservation) {
 				params.reservationId = foundReservation.id;
 			}
@@ -358,67 +357,21 @@ export default function ActivitiesPage() {
 	return (
 		<>
 			<Box sx={{ padding: 2, }}>
-				<Typography sx={{ fontSize: 26, fontWeight: 'bold', paddingBottom: 2 }}>Attività</Typography>
-				<OutlinedInput fullWidth placeholder='Cerca...' value={search} onChange={(event) => handleChangeSearch(event.target.value)} size='small' endAdornment={
-					<InputAdornment position='end'><SearchOutlined /></InputAdornment>
-				} />
-				<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2, paddingTop: 2, paddingBottom: 2 }}>
-					<Box sx={{
-						minWidth: 275, flexGrow: 1,
-						flexShrink: 1,
-						flexBasis: 0,
-						display: 'flex',
-						flexDirection: 'column',
-						justifyContent: 'space-between',
-					}}>
-						<TextField
-							select
-							defaultValue="ALL"
-							value={sport}
-							onChange={(event) => handleChangeSport(event.target.value)}
-							size='small'
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">Sport: </InputAdornment>,
-								},
-							}}
-						>
-							{sports.map((sport) => (
-								<MenuItem key={sport} value={sport}>
-									{sport === 'ALL' ? 'Tutti' : sport}
-								</MenuItem>
-							))}
-						</TextField>
-
-					</Box>
-					<Box sx={{
-						minWidth: 275, flexGrow: 1,
-						flexShrink: 1,
-						flexBasis: 0,
-						display: 'flex',
-						flexDirection: 'column',
-						justifyContent: 'space-between',
-					}}>
-						<TextField
-							select
-							defaultValue="ALL"
-							value={location}
-							onChange={(event) => handleChangeLocation(event.target.value)}
-							size='small'
-							slotProps={{
-								input: {
-									startAdornment: <InputAdornment position="start">Località: </InputAdornment>,
-								},
-							}}
-						>
-							{locations.map((location) => (
-								<MenuItem key={location} value={location}>
-									{location === 'ALL' ? 'Tutti' : location}
-								</MenuItem>
-							))}
-						</TextField>
-					</Box>
-				</Box>
+				<SectionHeader
+					title='Attività'
+					showBackButton={false}
+					showSearchField={true}
+					showFilters={true}
+					showBanner={false}
+					search={search}
+					sport={sport}
+					location={location}
+					sports={sports}
+					locations={locations}
+					onChangeSearch={handleChangeSearch}
+					onChangeSport={handleChangeSport}
+					onChangeLocation={handleChangeLocation}
+				/>
 				{
 					activitiesToRender.length ?
 						<Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', rowGap: 2, columnGap: 2 }}>
