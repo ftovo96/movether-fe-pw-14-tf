@@ -13,6 +13,10 @@ npm run dev
 ```
 a questo punto è possibile accederci andando all'indirizzo [http://localhost:3000](http://localhost:3000).
 
+Per fare test è possibile usare gli utenti:
+    * Rossi (email: mario.rossi@gmail.com - password: password123)
+    * Bianchi (email: rosa.bianchi@gmail.com - password: password456)
+
 ## Struttura del progetto
 
 Nella cartella app/ si trovano i file del frontend, nello specifico:
