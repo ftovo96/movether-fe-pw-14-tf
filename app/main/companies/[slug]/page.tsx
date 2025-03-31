@@ -63,7 +63,7 @@ function FeedbackCard(props: FeedbackCardProps) {
   );
 }
 
-export default function ActivitiesPage() {
+export default function CompanyPage() {
   const [isLoadingFeedbacks, setIsLoadingFeedbacks] = React.useState(false);
   const [isLoadingActivities, setIsLoadingActivities] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);

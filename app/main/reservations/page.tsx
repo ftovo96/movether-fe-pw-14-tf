@@ -109,6 +109,7 @@ interface EditDialogProps {
 	reservation: Reservation,
 	reservationOptions: ReservationOption[],
 	isOpen: boolean,
+	isLoggedIn: boolean,
 	handleClose: () => void,
 	handleEditReservation: (time: string, partecipants: number, option: ReservationOption, reservation: Reservation) => void,
 }
@@ -120,7 +121,7 @@ interface EditDialogProps {
 function EditReservationDialog(props: EditDialogProps) {
 	const [reservationOption, setReservationOption] = React.useState<ReservationOption>(props.reservationOptions[0]);
 	const [timeValue, setTimeValue] = React.useState<string>(props.reservation.time);
-	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(props.reservation.partecipants);
+	const [partecipantsValue, setPartecipantsValue] = React.useState<number>(props.isLoggedIn? props.reservation.partecipants : 1);
 	const [partecipantsValues, setPartecipantsValues] = React.useState<number[]>([]);
 
 	useEffect(() => handleChangeTime(props.reservation.time), []);
@@ -132,6 +133,8 @@ function EditReservationDialog(props: EditDialogProps) {
 		setPartecipantsValues(_partecipantsValues);
 		if (partecipantsValue > option.availablePartecipants) {
 			setPartecipantsValue(option.availablePartecipants);
+		} else if (!props.isLoggedIn) {
+			setPartecipantsValue(1);
 		}
 		setReservationOption(option);
 	}
@@ -163,7 +166,7 @@ function EditReservationDialog(props: EditDialogProps) {
 					<InputLabel>Posti</InputLabel>
 					<Select
 						value={partecipantsValue}
-						disabled={partecipantsValues.length < 2}
+						disabled={partecipantsValues.length < 2 || !props.isLoggedIn}
 						onChange={(event) => setPartecipantsValue(+event.target.value)}
 					>
 						{
@@ -631,7 +634,7 @@ export default function ReservationsPage() {
 			</Box>
 			{isFeedbackDialogOpen ? <FeedbackDialog isOpen={isFeedbackDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseFeedbackDialog} handleSendFeedback={handleSendFeedback} /> : null}
 			{isDeleteDialogOpen ? <DeleteReservationDialog isOpen={isDeleteDialogOpen} reservation={selectedReservation.current!} handleClose={handleCloseDeleteDialog} handleDeleteReservation={_deleteReservation} /> : null}
-			{isEditDialogOpen ? <EditReservationDialog isOpen={isEditDialogOpen} reservation={selectedReservation.current!} reservationOptions={reservationOptions} handleClose={handleCloseEditDialog} handleEditReservation={_editReservation} /> : null}
+			{isEditDialogOpen ? <EditReservationDialog isOpen={isEditDialogOpen} reservation={selectedReservation.current!} reservationOptions={reservationOptions} isLoggedIn={user.isLoggedIn} handleClose={handleCloseEditDialog} handleEditReservation={_editReservation} /> : null}
 			{isAnonymousReservationDialogOpen ? <AddAnonymousReservationDialog isOpen={true} isLoggedIn={user.isLoggedIn} userId={user.isLoggedIn? user.id : null} handleClose={() => setIsAnonymousReservationDialogOpen(false)} handleAddReservation={handleAddAnonymousReservation} /> : null}
 			<Snackbar
 				open={!!snackbarMessage}

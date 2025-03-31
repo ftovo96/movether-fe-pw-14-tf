@@ -63,6 +63,8 @@ export function ActivityDialog(props: ActivityDialogProps) {
 		setPartecipantsValues(partecipantsValues);
 		if (partecipantsValue > _activityOption.availablePartecipants) {
 			setPartecipantsValue(_activityOption.availablePartecipants);
+		} else if (!user.isLoggedIn) {
+			setPartecipantsValue(1);
 		}
 	}
 
@@ -93,7 +95,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 					<InputLabel>Posti</InputLabel>
 					<Select
 						value={partecipantsValue}
-						disabled={partecipantsValues.length < 2}
+						disabled={partecipantsValues.length < 2 || !user.isLoggedIn}
 						onChange={(event) => setPartecipantsValue(+event.target.value)}
 					>
 						{
