@@ -19,13 +19,13 @@ Per fare test è possibile usare gli utenti:
 
 ## Struttura del progetto
 
-Nella cartella app/ si trovano i file del frontend, nello specifico:
-* Le cartelle login/ e register/ contenti le pagine per effettuare l'accesso e/o la registrazione al sistema
-* La cartella main/ contenente a sua volta le cartelle contenenti le pagine relative alle attività, prenotazioni e premi
-* La cartella models/ contente la definizione delle entità del progetto
-* La cartella providers/ contentente i "servizi" del progetto (gestore autenticazione e prenotazioni "anonime").
+Nella cartella [app/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app) si trovano i file del frontend, nello specifico:
+* Le cartelle [login/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app/login) e [register/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app/register) contenti le pagine per effettuare l'accesso e/o la registrazione al sistema
+* La cartella [main/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app/main) contenente a sua volta le cartelle contenenti le pagine relative alle attività, prenotazioni e premi
+* La cartella [models/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app/models) contente la definizione delle entità del progetto
+* La cartella [providers/](https://github.com/ftovo96/movether-fe-pw-14-tf/tree/main/app/providers) contentente i "servizi" del progetto (gestore autenticazione e prenotazioni "anonime").
 
-Per altre informazioni sul progetto (Casi d'uso, Diagramma ER, Documentazione API, ecc...) fare riferimento alla cartella Documentazione/ nel repository del backend raggiungibile all'indirizzo [https://github.com/ftovo96/movether-be-pw-14-tf](https://github.com/ftovo96/movether-be-pw-14-tf).
+Per altre informazioni sul progetto (Casi d'uso, Diagramma ER, Documentazione API, ecc...) fare riferimento alla cartella [Documentazione/](https://github.com/ftovo96/movether-be-pw-14-tf/tree/main/Documentazione) nel repository del backend raggiungibile all'indirizzo [https://github.com/ftovo96/movether-be-pw-14-tf](https://github.com/ftovo96/movether-be-pw-14-tf).
 
 
 # README Next.js
