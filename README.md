@@ -1,8 +1,17 @@
-Questo è il repository lato frontend del progetto.
+Questo è il repository lato frontend del progetto "Movether".
 
 Per avviarlo è necessario aver installato [Node.js](https://nodejs.org/en) v18.18 o successiva.
 Per l'installazione e gestione delle versioni di node.js è consigliato l'uso di [nvm](https://github.com/nvm-sh/nvm) (MacOS/Linux) o di [nvm-windows](https://github.com/coreybutler/nvm-windows) (Windows).
 Il frontend del progetto è stato realizzato con Next.js, di cui si trovano le varie informazioni (in inglese) in fondo a questo file.
+
+## Avvio del progetto
+
+Dopo aver effettuato il clone del progetto è necessario entrare nella sua cartella e dare i seguenti comandi:
+```bash
+npm install
+npm run dev
+```
+a questo punto è possibile accederci andando all'indirizzo [http://localhost:3000](http://localhost:3000).
 
 ## Struttura del progetto
 
@@ -12,7 +21,7 @@ Nella cartella app/ si trovano i file del frontend, nello specifico:
 * La cartella models/ contente la definizione delle entità del progetto
 * La cartella providers/ contentente i "servizi" del progetto (gestore autenticazione e prenotazioni "anonime").
 
-Per altre informazioni sul progetto (Casi d'uso, Diagramma ER, Documentazione API, ecc...) fare riferimento alla cartella Documentazione/ nel repository del backend.
+Per altre informazioni sul progetto (Casi d'uso, Diagramma ER, Documentazione API, ecc...) fare riferimento alla cartella Documentazione/ nel repository del backend raggiungibile all'indirizzo [https://github.com/ftovo96/movether-be-pw-14-tf](https://github.com/ftovo96/movether-be-pw-14-tf).
 
 
 # README Next.js
