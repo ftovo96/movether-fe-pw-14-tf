@@ -52,7 +52,7 @@ export async function loadUserPoints(userId: number): Promise<number> {
     const result = await fetch(url)
         .then(result => result.json())
         .catch(() => null);
-    const userPoints: number = result?.points || 5;
+    const userPoints: number = result?.points;
     return userPoints;
 }
 

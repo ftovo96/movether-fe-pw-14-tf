@@ -148,7 +148,7 @@ function EditReservationDialog(props: EditDialogProps) {
 				{"Modifica prenotazione"}
 			</DialogTitle>
 			<DialogContent
-				sx={{ minWidth: 420 }}>
+				sx={{ minWidth: 320 }}>
 				<FormControl variant="filled" fullWidth>
 					<InputLabel>Orario</InputLabel>
 					<Select
@@ -178,7 +178,7 @@ function EditReservationDialog(props: EditDialogProps) {
 			<DialogActions>
 				<Button onClick={props.handleClose}>Annulla</Button>
 				<Button variant='outlined' onClick={() => props.handleEditReservation(timeValue, partecipantsValue, reservationOption, props.reservation)}>
-					Modifica prenotazione
+					Salva modifiche
 				</Button>
 			</DialogActions>
 		</Dialog>

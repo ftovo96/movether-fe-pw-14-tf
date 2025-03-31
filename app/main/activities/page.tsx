@@ -31,13 +31,13 @@ export function ActivityDialog(props: ActivityDialogProps) {
 	const [partecipantsValues, setPartecipantsValues] = React.useState<number[]>([]);
 	const user = React.useContext(UserContext);
 	const activityOptions = React.useRef<ActivityOption[]>([]);
-	
+
 	useEffect(() => {
 		_loadActivityOptions();
 	}, []);
 
 	function handleReserveActivity() {
-		if (!timeValue || ! partecipantsValue) {
+		if (!timeValue || !partecipantsValue) {
 			return;
 		}
 		const _activityOption = activityOptions.current.find(activity => activity.time === timeValue)!;
@@ -45,7 +45,7 @@ export function ActivityDialog(props: ActivityDialogProps) {
 	}
 
 	async function _loadActivityOptions() {
-		const _activityOptions = await getActivitiesOptions(props.activity.id, user.isLoggedIn? user.id : null);
+		const _activityOptions = await getActivitiesOptions(props.activity.id, user.isLoggedIn ? user.id : null);
 		activityOptions.current = _activityOptions;
 		if (activityOptions.current.length === 1) {
 			onChangeTimeOption(activityOptions.current[0].time);
@@ -78,6 +78,9 @@ export function ActivityDialog(props: ActivityDialogProps) {
 			</DialogTitle>
 			<DialogContent
 				sx={{ minWidth: 320 }}>
+				<Typography paddingBottom={2}>Sport: {props.activity.sport}</Typography>
+				<Typography paddingBottom={2}>Località: {props.activity.location}</Typography>
+				<Typography paddingBottom={2}>Descrizione: {props.activity.description}</Typography>
 				<FormControl variant="filled" fullWidth>
 					<InputLabel>Orario</InputLabel>
 					<Select

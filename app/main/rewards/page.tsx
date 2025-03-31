@@ -8,6 +8,7 @@ import { UserContext } from '@/app/providers/userProvider';
 import { RedeemedReward, Reward } from '@/app/models/reward';
 import Link from 'next/link';
 import { SectionHeader } from '@/app/widgets/section-header';
+import { DocumentScannerOutlined } from '@mui/icons-material';
 
 interface RewardCardProps {
   reward: Reward | null,
@@ -44,7 +45,7 @@ function RewardCard(props: RewardCardProps) {
         }
       </CardContent>
       {
-        props.isLoggedIn ?
+        props.isLoggedIn && props.points > 0 ?
           <CardActions sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end', alignItems: 'center' }}>
             {props.reward ?
               <Button variant='outlined' onClick={() => props.onClickRedeemReward(props.reward!)}>Riscatta</Button>
@@ -80,13 +81,18 @@ function RedeemedRewardCard(props: RedeemedRewardCardProps) {
           {props.redeemedReward?.description || <Skeleton />}
         </Typography>
         <Box sx={{ paddingBottom: 1 }} />
-        <Typography>{props.redeemedReward?.code || <Skeleton />}</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'start', alignItems: 'center' }}>
+          <DocumentScannerOutlined />
+          <Typography>&nbsp;Codice: {props.redeemedReward?.code || <Skeleton />}</Typography>
+        </Box>
       </CardContent>
     </Card>
   );
 }
 
-interface DeleteDialogProps {
+interface RedeemRewardDialogProps {
+  rewardId: number,
+  userId: number,
   isOpen: boolean,
   handleClose: () => void,
   handleRedeemReward: () => void,
@@ -96,7 +102,42 @@ interface DeleteDialogProps {
  * @description Componente che gestisce la Dialog (finestra) per riscattare
  * un premio
  */
-function RedeemRewardDialog(props: DeleteDialogProps) {
+function RedeemRewardDialog(props: RedeemRewardDialogProps) {
+  const [redeemedReward, setRedeemedReward] = React.useState<RedeemedReward | null>(null);
+
+  async function _redeemReward() {
+    const reward = await redeemReward(props.rewardId, props.userId);
+    setRedeemedReward(reward);
+  }
+
+  let dialogContent;
+  let dialogActions;
+  if (redeemedReward) {
+    dialogContent = <>
+      <Typography>Hai riscattato il premio!</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'start', alignItems: 'center' }}>
+        Codice:&nbsp;<Typography fontWeight={'bold'}>{redeemedReward.code}</Typography>
+      </Box>
+      <Typography>Comunica questo codice all&apos;ente per usufruirne!</Typography>
+    </>;
+    dialogActions = <>
+      <Button variant='outlined' onClick={() => props.handleRedeemReward()}>
+        Ok, grazie!
+      </Button>
+    </>;
+  } else {
+    dialogContent = <>
+      <Typography>Vuoi riscattare il premio?</Typography>
+      <Typography sx={{ fontWeight: 'bold' }}>I punti non sono rimborsabili.</Typography>
+    </>;
+    dialogActions = <>
+      <Button onClick={props.handleClose}>Annulla</Button>
+      <Button variant='outlined' onClick={() => _redeemReward()}>
+        Riscatta premio
+      </Button>
+    </>;
+  }
+
   return (
     <Dialog
       open={props.isOpen}
@@ -107,14 +148,10 @@ function RedeemRewardDialog(props: DeleteDialogProps) {
       </DialogTitle>
       <DialogContent
         sx={{ minWidth: 320 }}>
-        <Typography>Vuoi riscattare il premio?</Typography>
-        <Typography sx={{ fontWeight: 'bold' }}>I punti non sono rimborsabili.</Typography>
+        {dialogContent}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.handleClose}>Annulla</Button>
-        <Button variant='outlined' onClick={() => props.handleRedeemReward()}>
-          Riscatta premio
-        </Button>
+        {dialogActions}
       </DialogActions>
     </Dialog>
   );
@@ -162,7 +199,6 @@ export default function Rewards() {
 
   async function handleRedeemReward() {
     if (user.isLoggedIn) {
-      await redeemReward(selectedReward.current!.id, user.id);
       setIsDialogOpen(false);
       loadData();
       selectedReward.current = null;
@@ -210,7 +246,7 @@ export default function Rewards() {
           </> : null
         }
       </Box>
-      {isDialogOpen ? <RedeemRewardDialog isOpen={isDialogOpen} handleClose={handleCloseDialog} handleRedeemReward={handleRedeemReward} /> : null}
+      {isDialogOpen ? <RedeemRewardDialog isOpen={isDialogOpen} rewardId={selectedReward.current?.id || 0} userId={user.isLoggedIn? user.id : 0} handleClose={handleCloseDialog} handleRedeemReward={handleRedeemReward} /> : null}
     </>
   );
 }
