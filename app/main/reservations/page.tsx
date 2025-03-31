@@ -265,7 +265,7 @@ function AddAnonymousReservationDialog(props: AddAnonymousReservationDialogProps
 				{"Aggiungi prenotazione tramite codice"}
 			</DialogTitle>
 			<DialogContent
-				sx={{ minWidth: 420 }}>
+				sx={{ minWidth: 320 }}>
 				<Box sx={{ padding: 1 }}></Box>
 				{
 					reservationNotFound ?
@@ -303,7 +303,7 @@ function AddAnonymousReservationDialog(props: AddAnonymousReservationDialogProps
 			<DialogActions>
 				<Button onClick={props.handleClose}>Annulla</Button>
 				<Button variant='outlined' disabled={!_canSubmitForm()} onClick={() => _handleAddReservation()}>
-					Aggiungi prenotazione
+					Aggiungi
 				</Button>
 			</DialogActions>
 		</Dialog>
