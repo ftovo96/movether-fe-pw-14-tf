@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Skeleton, Snackbar, Typography } from '@mui/material';
+import { Alert, Button, Card, CardActions, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Skeleton, Snackbar, Typography } from '@mui/material';
 import { AccessTimeOutlined, CalendarMonthOutlined, GroupsOutlined, PlaceOutlined } from '@mui/icons-material';
 import { ActivityOption, getActivitiesOptions, loadActivities, reserveActivity, ReserveActivityParams } from './actions';
 import { useEffect } from 'react';
@@ -94,22 +94,31 @@ export function ActivityDialog(props: ActivityDialogProps) {
 					</Select>
 				</FormControl>
 				<Box sx={{ padding: 1 }} />
-				<FormControl variant="filled" fullWidth>
-					<InputLabel>Posti</InputLabel>
-					<Select
-						value={partecipantsValue}
-						disabled={partecipantsValues.length < 2 || !user.isLoggedIn}
-						onChange={(event) => setPartecipantsValue(+event.target.value)}
-					>
-						{
-							partecipantsValues.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)
-						}
-					</Select>
-				</FormControl>
+				{
+					partecipantsValues.length || !timeValue ?
+						<FormControl variant="filled" fullWidth>
+							<InputLabel>Posti</InputLabel>
+							<Select
+								value={partecipantsValue}
+								disabled={partecipantsValues.length < 2 || !user.isLoggedIn}
+								onChange={(event) => setPartecipantsValue(+event.target.value)}
+							>
+								{
+									partecipantsValues.map(value => <MenuItem key={value} value={value}>{value}</MenuItem>)
+								}
+							</Select>
+						</FormControl>
+						:
+						<Alert severity="error">
+							<Typography>
+								Attività non disponibile nell&apos;orario selezionato
+							</Typography>
+						</Alert>
+				}
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={props.handleClose}>Annulla</Button>
-				<Button variant='outlined' onClick={handleReserveActivity}>
+				<Button variant='outlined' onClick={handleReserveActivity} disabled={!timeValue || !partecipantsValue}>
 					Prenota
 				</Button>
 			</DialogActions>

@@ -120,7 +120,9 @@ export interface ActivityOption {
 export async function getActivitiesOptions(activityId: number, userId: number | null): Promise<ActivityOption[]> {
     try {
         const url = new URL(`${API_URL}/activities/${activityId}`);
-        url.searchParams.append('userId', `${userId}`);
+        if (userId) {
+            url.searchParams.append('userId', `${userId}`);
+        }
         const response = await fetch(url, { method: 'GET' });
         const data: [] = await response.json();
         const activityOptions: ActivityOption[] = data.map(json => {
